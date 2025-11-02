@@ -1,457 +1,329 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>2048</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2048 - 深色6x6魔法版</title>
 <style>
-  :root{
-    --bg: #121217;
-    --panel: #1b1b20;
-    --tile-bg: #232328;
-    --text: #e6e6e9;
-    --muted: #9aa0a6;
-    --accent: #ffb259;
-    --tile-size: 84px;
-    --gap: 12px;
-    --cursor-default-size: 28px;
-    --cursor-max-size: 88px;
-  }
+:root {
+  --bg: #121217;
+  --panel: #1b1b20;
+  --tile-bg: #232328;
+  --text: #e6e6e9;
+  --accent: #ffb259;
+  --tile-size: 80px;
+  --gap: 10px;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+  cursor: none;
+  font-family: 'Segoe UI', sans-serif;
+}
+.panel {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.title {
+  font-size: 24px;
+  font-weight: bold;
+}
+.btn {
+  background: #2b2b30;
+  color: var(--text);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: 0.15s;
+}
+.btn:hover {
+  background: #3a3a40;
+}
+.board {
+  margin-top: 20px;
+  background: #0e0e11;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(6, var(--tile-size));
+  grid-template-rows: repeat(6, var(--tile-size));
+  gap: var(--gap);
+  position: relative;
+}
+.cell {
+  background: var(--tile-bg);
+  border-radius: 10px;
+  width: var(--tile-size);
+  height: var(--tile-size);
+}
+.tile {
+  position: absolute;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 22px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+.tile.v2 { background: #eee4da; color: #776e65; }
+.tile.v4 { background: #ede0c8; color: #776e65; }
+.tile.v8 { background: #f2b179; }
+.tile.v16 { background: #f59563; }
+.tile.v32 { background: #f67c5f; }
+.tile.v64 { background: #f65e3b; }
+.tile.v128 { background: #edcf72; color: #3c2e12; }
+.tile.v256 { background: #edcc61; color: #3c2e12; }
+.tile.v512 { background: #edc850; color: #3c2e12; }
+.tile.v1024 { background: #edc53f; color: #3c2e12; }
+.tile.v2048 { background: #edc22e; color: #3c2e12; }
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+}
+.modal {
+  background: #1f1f23;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+}
 
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
-  body{
-    background: linear-gradient(180deg,var(--bg),#0d0d10);
-    color:var(--text);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-    overflow:hidden;
-  }
+/* 自定义鼠标 */
+#cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 0 10px rgba(255,255,255,0.2);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: all 0.15s ease;
+  z-index: 9999;
+}
+#cursor.square {
+  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 200, 100, 0.1);
+  border: 1px solid rgba(255, 200, 100, 0.5);
+  box-shadow: 0 0 12px rgba(255,200,100,0.4);
+}
 
-  /* hide native cursor when using our custom cursor */
-  html.no-cursor *{ cursor: none !important; }
-
-  .game-wrap{
-    width: min(1100px,96vw);
-    height: min(640px,86vh);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
-  .panel{
-    background: linear-gradient(180deg,var(--panel), #15151a);
-    border-radius:14px;
-    padding:18px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.6);
-  }
-
-  .header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-  }
-  .title{
-    font-weight:700;
-    font-size:24px;
-  }
-
-  .controls{
-    display:flex;
-    gap:8px;
-  }
-
-  .score{
-    background:#0f0f12;
-    padding:8px 12px;
-    border-radius:8px;
-    min-width:88px;
-    text-align:center;
-  }
-  .score .label{font-size:12px;color:var(--muted);}
-  .score .value{font-size:16px;font-weight:700;}
-
-  .btn{
-    background:#2b2b30;
-    border:1px solid rgba(255,255,255,0.08);
-    padding:8px 12px;
-    border-radius:8px;
-    cursor:pointer; /* fallback for touch devices */
-    color:var(--text);
-    font-weight:600;
-    transition:background .12s, transform .08s;
-    user-select:none;
-  }
-  .btn.small{padding:6px 8px;font-size:13px;}
-  .btn:active{transform:scale(.98);}
-
-  .board{
-    background:#0e0e11;
-    padding:var(--gap);
-    border-radius:12px;
-    display:grid;
-    grid-template-columns:repeat(6,var(--tile-size));
-    grid-template-rows:repeat(6,var(--tile-size));
-    gap:var(--gap);
-    position:relative;
-    user-select:none;
-    touch-action:none; /* 禁止浏览器默认的触摸手势（防止滑动导致页面移动） */
-  }
-  .cell{
-    width:var(--tile-size);
-    height:var(--tile-size);
-    border-radius:10px;
-    background:var(--tile-bg);
-  }
-
-  .tile{
-    position:absolute;
-    border-radius:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:800;
-    color:#fff;
-    font-size:20px;
-    transition:transform .15s ease, left .08s linear, top .08s linear;
-    will-change: transform, left, top;
-  }
-
-  .tile.v2{background:#eee4da;color:#776e65;}
-  .tile.v4{background:#ede0c8;color:#776e65;}
-  .tile.v8{background:#f2b179;}
-  .tile.v16{background:#f59563;}
-  .tile.v32{background:#f67c5f;}
-  .tile.v64{background:#f65e3b;}
-  .tile.v128{background:#edcf72;color:#3c2e12;}
-  .tile.v256{background:#edcc61;color:#3c2e12;}
-  .tile.v512{background:#edc850;color:#3c2e12;}
-  .tile.v1024{background:#edc53f;color:#3c2e12;}
-  .tile.v2048{background:#edc22e;color:#3c2e12;}
-
-  .overlay{
-    position:absolute;
-    inset:0;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,0.45);
-    border-radius:12px;
-    z-index:60;
-  }
-
-  .modal{
-    background:#1f1f23;
-    padding:18px;
-    border-radius:12px;
-    text-align:center;
-  }
-
-  /* ----- 自定义光标 ----- */
-  #customCursor{
-    position:fixed;
-    left:0;
-    top:0;
-    width:var(--cursor-default-size);
-    height:var(--cursor-default-size);
-    transform:translate(-50%,-50%);
-    border-radius:50%;
-    pointer-events:none; /* 不阻挡鼠标事件 */
-    z-index:99999;
-    display:block;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 25%, rgba(255,255,255,0) 40%), rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
-    transition: width .12s ease, height .12s ease, border-radius .12s ease, transform .03s linear, background .12s ease, left .02s linear, top .02s linear;
-    mix-blend-mode:screen;
-  }
-  /* 方形状态 */
-  #customCursor.square{
-    border-radius:8px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-  }
-
-  /* 隐藏自定义光标在触摸/粗指针设备 */
-  html.cursor-disabled #customCursor{ display:none; }
-  html.cursor-disabled *{ cursor: auto !important; }
-  /* ---------------------- */
-
-  @media (max-width:760px){
-    :root{ --tile-size:56px; --gap:10px; --cursor-default-size:22px; --cursor-max-size:60px; }
-    .title{ font-size:20px; }
-  }
+#easterHint {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  color: #ffd36b;
+  background: rgba(255,255,255,0.08);
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: none;
+  font-size: 13px;
+  z-index: 10000;
+}
 </style>
 </head>
 <body>
-  <div class="game-wrap">
-    <div class="panel">
-      <div class="header">
-        <div class="title">2048</div>
-        <div class="controls">
-          <div class="score"><div class="label">分数</div><div class="value" id="score">0</div></div>
-          <div class="score"><div class="label">最高</div><div class="value" id="best">0</div></div>
-          <button class="btn small" id="newBtn">新游戏</button>
-        </div>
-      </div>
-      <div class="board" id="board"></div>
-      <div class="overlay" id="overlay"></div>
-    </div>
+<div class="panel">
+  <div class="header">
+    <div class="title">2048</div>
+    <button class="btn" id="newGame">新游戏</button>
   </div>
-
-  <!-- 自定义光标元素 -->
-  <div id="customCursor" aria-hidden="true"></div>
+  <div class="board" id="board"></div>
+  <div class="overlay" id="overlay"><div class="modal">🎉 你赢了！</div></div>
+</div>
+<div id="cursor"></div>
+<div id="easterHint">🌈 彩蛋模式已启动</div>
 
 <script>
-(() => {
-  /* ====== 游戏（简洁版） ====== */
-  const SIZE = 6;
-  const board = document.getElementById('board');
-  const overlay = document.getElementById('overlay');
-  const scoreEl = document.getElementById('score');
-  const bestEl = document.getElementById('best');
-  const newBtn = document.getElementById('newBtn');
+const boardEl = document.getElementById("board");
+const overlay = document.getElementById("overlay");
+const newBtn = document.getElementById("newGame");
+const cursor = document.getElementById("cursor");
+const hint = document.getElementById("easterHint");
 
-  let grid = [], score = 0, best = +localStorage.getItem('best6x6') || 0, won = false;
-  bestEl.textContent = best;
+let grid = [];
+const size = 6;
+let score = 0;
+let easterClicks = 0;
+let autoMode = false;
 
-  // 禁止页面在触摸滑动时滚动（防止移动时页面滚动）
-  // 注意：我们只阻止 board 内的 touchmove（而不是全局），以尽量保持其他系统手势
-  board.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+// 初始化
+function init() {
+  overlay.style.display = "none";
+  grid = Array(size).fill(0).map(()=>Array(size).fill(0));
+  addTile();
+  addTile();
+  render();
+}
 
-  function init(){
-    grid = Array(SIZE*SIZE).fill(0);
-    score = 0; won = false;
-    overlay.style.display = 'none';
-    board.innerHTML = '';
-    // background cells
-    for(let i=0;i<SIZE*SIZE;i++){
-      const c = document.createElement('div');
-      c.className = 'cell';
-      board.appendChild(c);
+function addTile() {
+  const empty = [];
+  for(let i=0;i<size;i++)
+    for(let j=0;j<size;j++)
+      if(!grid[i][j]) empty.push([i,j]);
+  if(empty.length>0){
+    const [x,y] = empty[Math.floor(Math.random()*empty.length)];
+    grid[x][y] = Math.random()<0.9?2:4;
+  }
+}
+
+function render() {
+  boardEl.innerHTML = "";
+  for(let i=0;i<size;i++){
+    for(let j=0;j<size;j++){
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      boardEl.appendChild(cell);
+      const val = grid[i][j];
+      if(val){
+        const tile = document.createElement("div");
+        tile.className = `tile v${val}`;
+        tile.textContent = val;
+        tile.style.left = `calc(${j} * (var(--tile-size) + var(--gap)) + var(--gap))`;
+        tile.style.top = `calc(${i} * (var(--tile-size) + var(--gap)) + var(--gap))`;
+        tile.style.width = "var(--tile-size)";
+        tile.style.height = "var(--tile-size)";
+        boardEl.appendChild(tile);
+      }
     }
-    addTile(); addTile();
-    render();
   }
+  checkWin();
+}
 
-  function addTile(){
-    const empty = grid.map((v,i)=>v===0?i:null).filter(v=>v!==null);
-    if(!empty.length) return;
-    const idx = empty[Math.floor(Math.random()*empty.length)];
-    grid[idx] = Math.random()<0.1?4:2;
+function move(dir){
+  let moved = false;
+  function slide(row){
+    row = row.filter(v=>v);
+    for(let i=0;i<row.length-1;i++){
+      if(row[i]===row[i+1]){
+        row[i]*=2;
+        row[i+1]=0;
+      }
+    }
+    return row.filter(v=>v);
   }
+  if(dir==="left"){
+    for(let i=0;i<size;i++){
+      let newRow = slide(grid[i]);
+      while(newRow.length<size) newRow.push(0);
+      if(newRow.toString()!=grid[i].toString()){grid[i]=newRow;moved=true;}
+    }
+  } else if(dir==="right"){
+    for(let i=0;i<size;i++){
+      let row = grid[i].slice().reverse();
+      let newRow = slide(row);
+      while(newRow.length<size) newRow.push(0);
+      newRow.reverse();
+      if(newRow.toString()!=grid[i].toString()){grid[i]=newRow;moved=true;}
+    }
+  } else if(dir==="up"){
+    for(let j=0;j<size;j++){
+      let col = [];
+      for(let i=0;i<size;i++) col.push(grid[i][j]);
+      let newCol = slide(col);
+      while(newCol.length<size) newCol.push(0);
+      for(let i=0;i<size;i++) if(grid[i][j]!=newCol[i]){grid[i][j]=newCol[i];moved=true;}
+    }
+  } else if(dir==="down"){
+    for(let j=0;j<size;j++){
+      let col = [];
+      for(let i=0;i<size;i++) col.push(grid[i][j]);
+      col.reverse();
+      let newCol = slide(col);
+      while(newCol.length<size) newCol.push(0);
+      newCol.reverse();
+      for(let i=0;i<size;i++) if(grid[i][j]!=newCol[i]){grid[i][j]=newCol[i];moved=true;}
+    }
+  }
+  if(moved) addTile();
+  render();
+}
 
-  function move(dir){
-    let moved = false;
-    const at=(r,c)=>grid[r*SIZE+c];
-    const set=(r,c,v)=>grid[r*SIZE+c]=v;
-    const combine = (list)=>{
-      const arr=list.filter(v=>v);
-      for(let i=0;i<arr.length-1;i++){
-        if(arr[i]===arr[i+1]){
-          arr[i]*=2; score+=arr[i]; arr.splice(i+1,1);
-          if(arr[i]===2048 && !won){ won=true; setTimeout(win,120); }
+function checkWin(){
+  for(let i=0;i<size;i++){
+    for(let j=0;j<size;j++){
+      if(grid[i][j]===2048){
+        overlay.style.display = "flex";
+        if(autoMode){
+          setTimeout(()=>{hint.textContent="🌈 自动通关完成！";},1000);
         }
-      }
-      while(arr.length<SIZE)arr.push(0);
-      return arr;
-    };
-    for(let i=0;i<SIZE;i++){
-      let line=[];
-      for(let j=0;j<SIZE;j++) line.push(dir==='left'||dir==='right'?at(i,j):at(j,i));
-      if(dir==='right'||dir==='down') line.reverse();
-      const newLine = combine(line.slice());
-      if(dir==='right'||dir==='down') newLine.reverse();
-      for(let j=0;j<SIZE;j++){
-        const old = dir==='left'||dir==='right'?at(i,j):at(j,i);
-        const nv = newLine[j];
-        if(old !== nv) moved = true;
-        if(dir==='left'||dir==='right') set(i,j,nv); else set(j,i,nv);
+        return true;
       }
     }
-    if(moved){ addTile(); render(); if(!grid.includes(0) && !canMove()) setTimeout(lose,120); }
   }
+  return false;
+}
 
-  function canMove(){
-    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
-      const v = grid[r*SIZE+c];
-      if(r+1<SIZE && grid[(r+1)*SIZE+c]===v) return true;
-      if(c+1<SIZE && grid[r*SIZE+c+1]===v) return true;
-    }
-    return false;
+document.addEventListener("keydown",e=>{
+  if(autoMode) return;
+  if(e.key==="ArrowLeft") move("left");
+  else if(e.key==="ArrowRight") move("right");
+  else if(e.key==="ArrowUp") move("up");
+  else if(e.key==="ArrowDown") move("down");
+});
+
+// 鼠标控制
+document.addEventListener("mousemove",e=>{
+  cursor.style.left = e.clientX+"px";
+  cursor.style.top = e.clientY+"px";
+});
+newBtn.addEventListener("mouseenter",()=>cursor.classList.add("square"));
+newBtn.addEventListener("mouseleave",()=>cursor.classList.remove("square"));
+
+// 彩蛋：连续点击10次“新游戏”
+newBtn.addEventListener("click",()=>{
+  easterClicks++;
+  if(easterClicks>=10){
+    autoMode=true;
+    hint.style.display="block";
+    autoRun();
+  } else {
+    init();
   }
+  setTimeout(()=>{easterClicks=0;},3000);
+});
 
-  function render(){
-    scoreEl.textContent = score;
-    if(score>best){ best=score; localStorage.setItem('best6x6', best); }
-    bestEl.textContent = best;
-    // remove old tiles then add current
-    document.querySelectorAll('.tile').forEach(t => t.remove());
-    const tileSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tile-size')) || 84;
-    const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 12;
-    grid.forEach((v,i) => {
-      if(!v) return;
-      const t = document.createElement('div');
-      t.className = 'tile v' + v;
-      t.textContent = v;
-      const r = Math.floor(i/SIZE), c = i%SIZE;
-      t.style.width = tileSize + 'px';
-      t.style.height = tileSize + 'px';
-      // left/top: gap + index*(tile+gap)  (match CSS background cells)
-      t.style.left = (c*(tileSize+gap) + gap) + 'px';
-      t.style.top = (r*(tileSize+gap) + gap) + 'px';
-      board.appendChild(t);
-    });
+// 自动通关模式
+async function autoRun(){
+  let dirs=["left","right","up","down"];
+  let attempts=0;
+  while(!checkWin() && attempts<20000){
+    move(dirs[Math.floor(Math.random()*4)]);
+    await new Promise(r=>setTimeout(r,30));
+    attempts++;
   }
+}
 
-  function win(){
-    overlay.style.display = 'flex';
-    overlay.innerHTML = `<div class="modal"><h3>🎉 你达到了 2048！</h3>
-      <div style="color:var(--muted);margin:10px 0">恭喜！要继续挑战还是重新开始？</div>
-      <div style="display:flex;gap:8px;justify-content:center">
-        <button class="btn" id="contBtn">继续</button>
-        <button class="btn" id="restartBtn">重新开始</button>
-      </div>
-    </div>`;
-    document.getElementById('contBtn').addEventListener('click', ()=> overlay.style.display='none');
-    document.getElementById('restartBtn').addEventListener('click', ()=> { overlay.style.display='none'; init(); });
-  }
-
-  function lose(){
-    overlay.style.display = 'flex';
-    overlay.innerHTML = `<div class="modal"><h3>💀 游戏结束</h3>
-      <div style="margin-top:8px"><button class="btn" id="againBtn">再试一次</button></div></div>`;
-    document.getElementById('againBtn').addEventListener('click', ()=> { overlay.style.display='none'; init(); });
-  }
-
-  // keyboard input
-  window.addEventListener('keydown', e => {
-    const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
-    if(map[e.key]){ e.preventDefault(); move(map[e.key]); }
-  });
-
-  // touch swipe on board
-  let touchStart = null;
-  board.addEventListener('touchstart', e => {
-    if(e.touches.length===1) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  }, { passive:true });
-  board.addEventListener('touchend', e => {
-    if(!touchStart) return;
-    const end = e.changedTouches[0];
-    const dx = end.clientX - touchStart.x;
-    const dy = end.clientY - touchStart.y;
-    const absX = Math.abs(dx), absY = Math.abs(dy);
-    if(Math.max(absX, absY) > 20){
-      if(absX > absY) move(dx > 0 ? 'right' : 'left');
-      else move(dy > 0 ? 'down' : 'up');
-    }
-    touchStart = null;
-  });
-
-  newBtn.addEventListener('click', () => init());
-
-  init();
-
-  /* ====== 自定义光标逻辑 ====== */
-  const cursor = document.getElementById('customCursor');
-  const html = document.documentElement;
-
-  // feature detection: if device is coarse pointer (touch), disable custom cursor
-  function updateCursorMode(){
-    const isCoarse = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-    if(isCoarse){
-      html.classList.remove('no-cursor');
-      html.classList.add('cursor-disabled');
-    } else {
-      html.classList.add('no-cursor'); // hide native
-      html.classList.remove('cursor-disabled');
-    }
-  }
-  updateCursorMode();
-  // listen for changes (e.g., when connecting a mouse to tablet)
-  const media = window.matchMedia('(hover: none), (pointer: coarse)');
-  if(media.addEventListener) media.addEventListener('change', updateCursorMode);
-  else if(media.addListener) media.addListener(updateCursorMode);
-
-  // Ensure custom cursor visible and properly styled
-  cursor.style.width = getComputedStyle(document.documentElement).getPropertyValue('--cursor-default-size') || '28px';
-  cursor.style.height = cursor.style.width;
-  cursor.style.borderRadius = '50%';
-
-  // Smooth follow: track latest mouse and apply position with small requestAnimationFrame
-  let mouseX = 0, mouseY = 0;
-  let targetX = 0, targetY = 0;
-  let rafId = null;
-  window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    // if custom cursor disabled (touch), do nothing
-    if(html.classList.contains('cursor-disabled')) return;
-    // immediately move (we use a tiny lerp for smoothness)
-    targetX = mouseX;
-    targetY = mouseY;
-    cursor.style.left = targetX + 'px';
-    cursor.style.top = targetY + 'px';
-  });
-
-  // Hover behavior for buttons: make cursor square and size match button
-  function enterBtn(e){
-    if(html.classList.contains('cursor-disabled')) return;
-    const btn = e.currentTarget;
-    const rect = btn.getBoundingClientRect();
-    // choose size: use max(width, height) to ensure it encloses the button; cap to --cursor-max-size
-    const computedMax = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cursor-max-size')) || 88;
-    const size = Math.min(Math.max(rect.width, rect.height), computedMax);
-    cursor.classList.add('square');
-    cursor.style.width = size + 'px';
-    cursor.style.height = size + 'px';
-    // keep cursor following pointer (do NOT jump to center)
-    // but add a subtle scaling up effect via transform: handled by CSS transition
-  }
-  function leaveBtn(){
-    if(html.classList.contains('cursor-disabled')) return;
-    cursor.classList.remove('square');
-    const defaultSize = getComputedStyle(document.documentElement).getPropertyValue('--cursor-default-size') || '28px';
-    cursor.style.width = defaultSize;
-    cursor.style.height = defaultSize;
-  }
-
-  // Attach listeners to existing and future buttons
-  function watchButtons(){
-    document.querySelectorAll('.btn').forEach(b => {
-      // avoid duplicate listeners by marking
-      if(b.__cursorBound) return;
-      b.__cursorBound = true;
-      b.addEventListener('mouseenter', enterBtn);
-      b.addEventListener('mouseleave', leaveBtn);
-      // keyboard focus should also show square
-      b.addEventListener('focus', enterBtn);
-      b.addEventListener('blur', leaveBtn);
-    });
-  }
-  watchButtons();
-  const mo = new MutationObserver(watchButtons);
-  mo.observe(document.body, { childList:true, subtree:true });
-
-  // Hide custom cursor on touchstart (some devices may trigger mousemove then touch)
-  window.addEventListener('touchstart', ()=> {
-    html.classList.add('cursor-disabled');
-    html.classList.remove('no-cursor');
-  }, {passive:true});
-
-  // make sure cursor is hidden on pointerleave of window
-  window.addEventListener('mouseleave', ()=> {
-    cursor.style.opacity = '0';
-  });
-  window.addEventListener('mouseenter', ()=> {
-    cursor.style.opacity = '1';
-  });
-
-})();
+init();
 </script>
 </body>
 </html>
