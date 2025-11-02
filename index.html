@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>2048 — 深色 6×6（横屏）</title>
+<title>2048</title>
 <style>
   :root{
     --bg: #121217;
@@ -12,10 +12,12 @@
     --text: #e6e6e9;
     --muted: #9aa0a6;
     --accent: #ffb259;
-    --tile-size: 84px; /* 基准 tile 大小，可响应缩放 */
+    --tile-size: 84px;
     --gap: 12px;
-    --control-size: 44px;
+    --cursor-default-size: 28px;
+    --cursor-max-size: 88px;
   }
+
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;font-family:Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
   body{
@@ -25,27 +27,18 @@
     align-items:center;
     justify-content:center;
     padding:20px;
+    overflow:hidden;
   }
 
-  /* 主容器：横屏优先 */
+  /* hide native cursor when using our custom cursor */
+  html.no-cursor *{ cursor: none !important; }
+
   .game-wrap{
-    width: min(1100px, 96vw);
-    height: min(640px, 86vh);
+    width: min(1100px,96vw);
+    height: min(640px,86vh);
     display:flex;
-    gap:20px;
     align-items:center;
     justify-content:center;
-    transform-origin:center;
-  }
-
-  /* 当高度>宽度时提示旋转（横屏优先） */
-  @media (orientation:portrait) {
-    .rotate-tip{
-      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-      z-index:9999;pointer-events:none;
-      color:var(--muted);font-size:18px;opacity:0.9;
-      backdrop-filter: blur(6px);
-    }
   }
 
   .panel{
@@ -55,603 +48,408 @@
     display:flex;
     flex-direction:column;
     gap:14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    box-shadow:0 10px 30px rgba(0,0,0,0.6);
   }
 
   .header{
     display:flex;
-    gap:12px;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
   }
   .title{
-    font-weight:700;font-size:20px;letter-spacing:1px;
+    font-weight:700;
+    font-size:24px;
   }
+
   .controls{
-    display:flex;gap:8px;align-items:center;
+    display:flex;
+    gap:8px;
   }
+
   .score{
-    background:#0f0f12;padding:8px 12px;border-radius:8px;
-    min-width:88px;text-align:center;
+    background:#0f0f12;
+    padding:8px 12px;
+    border-radius:8px;
+    min-width:88px;
+    text-align:center;
   }
-  .score .label{font-size:12px;color:var(--muted)}
-  .score .value{font-size:16px;font-weight:700}
+  .score .label{font-size:12px;color:var(--muted);}
+  .score .value{font-size:16px;font-weight:700;}
 
   .btn{
-    background:linear-gradient(180deg,#2b2b30,#1f1f23);
-    border:1px solid rgba(255,255,255,0.03);
-    padding:8px 12px;border-radius:8px;
-    cursor:pointer; user-select:none;
-    display:inline-flex;align-items:center;justify-content:center;
-    font-weight:600;color:var(--text);
-    transition:transform .08s ease, box-shadow .08s ease;
+    background:#2b2b30;
+    border:1px solid rgba(255,255,255,0.08);
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer; /* fallback for touch devices */
+    color:var(--text);
+    font-weight:600;
+    transition:background .12s, transform .08s;
+    user-select:none;
   }
-  .btn:active{transform:scale(.98)}
-  .btn.small{padding:6px 8px;font-size:13px;border-radius:8px}
+  .btn.small{padding:6px 8px;font-size:13px;}
+  .btn:active{transform:scale(.98);}
 
-  /* 布局 - 游戏区域 */
-  .play-area{
-    display:flex;gap:18px;align-items:flex-start;
-  }
   .board{
-    background: linear-gradient(180deg,#0e0e11,#16161a);
-    padding: var(--gap);
+    background:#0e0e11;
+    padding:var(--gap);
     border-radius:12px;
     display:grid;
-    grid-template-columns: repeat(6, var(--tile-size));
-    grid-template-rows: repeat(6, var(--tile-size));
-    gap: var(--gap);
-    min-width: calc(6 * var(--tile-size) + 5 * var(--gap));
-    min-height: calc(6 * var(--tile-size) + 5 * var(--gap));
-    box-shadow: inset 0 4px 0 rgba(255,255,255,0.02);
+    grid-template-columns:repeat(6,var(--tile-size));
+    grid-template-rows:repeat(6,var(--tile-size));
+    gap:var(--gap);
+    position:relative;
+    user-select:none;
+    touch-action:none; /* 禁止浏览器默认的触摸手势（防止滑动导致页面移动） */
   }
   .cell{
-    width: var(--tile-size); height: var(--tile-size);
+    width:var(--tile-size);
+    height:var(--tile-size);
     border-radius:10px;
-    background: var(--tile-bg);
-    display:flex;align-items:center;justify-content:center;
-    color:var(--muted);
-    font-weight:700;
+    background:var(--tile-bg);
   }
 
-  /* 动态 tile */
   .tile{
     position:absolute;
     border-radius:10px;
-    display:flex;align-items:center;justify-content:center;
-    font-weight:800;color:#fff;
-    will-change: transform, width, height, opacity;
-    transition: transform .12s ease, opacity .12s ease;
-    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    color:#fff;
+    font-size:20px;
+    transition:transform .15s ease, left .08s linear, top .08s linear;
+    will-change: transform, left, top;
   }
 
-  /* 值样式 */
-  .tile.v2{ background:#eee4da; color:#776e65; font-size:22px; }
-  .tile.v4{ background:#ede0c8; color:#776e65; font-size:22px; }
-  .tile.v8{ background:#f2b179; }
-  .tile.v16{ background:#f59563; }
-  .tile.v32{ background:#f67c5f; }
-  .tile.v64{ background:#f65e3b; }
-  .tile.v128{ background:#edcf72; font-size:18px;color:#3c2e12 }
-  .tile.v256{ background:#edcc61; font-size:18px;color:#3c2e12 }
-  .tile.v512{ background:#edc850; font-size:16px;color:#3c2e12 }
-  .tile.v1024{ background:#edc53f; font-size:14px;color:#3c2e12 }
-  .tile.v2048{ background:#edc22e; font-size:14px;color:#3c2e12 }
+  .tile.v2{background:#eee4da;color:#776e65;}
+  .tile.v4{background:#ede0c8;color:#776e65;}
+  .tile.v8{background:#f2b179;}
+  .tile.v16{background:#f59563;}
+  .tile.v32{background:#f67c5f;}
+  .tile.v64{background:#f65e3b;}
+  .tile.v128{background:#edcf72;color:#3c2e12;}
+  .tile.v256{background:#edcc61;color:#3c2e12;}
+  .tile.v512{background:#edc850;color:#3c2e12;}
+  .tile.v1024{background:#edc53f;color:#3c2e12;}
+  .tile.v2048{background:#edc22e;color:#3c2e12;}
 
-  /* overlay */
   .overlay{
-    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    background:rgba(0,0,0,0.45);backdrop-filter: blur(4px);
-    color:var(--text);z-index:60;border-radius:12px;flex-direction:column;gap:12px;
+    position:absolute;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.45);
+    border-radius:12px;
+    z-index:60;
   }
 
-  /* footer */
-  .info{
-    color:var(--muted);font-size:13px;max-width:260px;line-height:1.3;
-  }
-
-  /* win modal styles */
   .modal{
-    background: linear-gradient(180deg,#1f1f23,#111111);
-    padding:18px;border-radius:12px;text-align:center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    background:#1f1f23;
+    padding:18px;
+    border-radius:12px;
+    text-align:center;
   }
 
-  /* custom cursor (we hide native cursor and draw our own) */
-  html.no-cursor *{ cursor: none !important; }
-  .custom-cursor{
-    position:fixed;left:0;top:0;pointer-events:none;z-index:9999;
-    width:28px;height:28px;border-radius:50%;
-    transform:translate(-50%,-50%);mix-blend-mode:screen;
-    background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.22), rgba(255,255,255,0.06) 20%, rgba(255,255,255,0) 40%), linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  /* ----- 自定义光标 ----- */
+  #customCursor{
+    position:fixed;
+    left:0;
+    top:0;
+    width:var(--cursor-default-size);
+    height:var(--cursor-default-size);
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    pointer-events:none; /* 不阻挡鼠标事件 */
+    z-index:99999;
+    display:block;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.14), rgba(255,255,255,0.02) 25%, rgba(255,255,255,0) 40%), rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.06);
-    transition: width .12s ease, height .12s ease, border-radius .12s ease, transform .04s linear, background .12s ease;
-    backdrop-filter: blur(1px);
+    transition: width .12s ease, height .12s ease, border-radius .12s ease, transform .03s linear, background .12s ease, left .02s linear, top .02s linear;
+    mix-blend-mode:screen;
   }
-  .custom-cursor.square{ border-radius:8px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); }
-  /* hide cursor on touch devices */
-  @media (hover:none), (pointer:coarse){
-    html.no-cursor { cursor: auto !important; }
-    .custom-cursor{ display:none }
+  /* 方形状态 */
+  #customCursor.square{
+    border-radius:8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
   }
 
-  /* small responsive adjustments */
+  /* 隐藏自定义光标在触摸/粗指针设备 */
+  html.cursor-disabled #customCursor{ display:none; }
+  html.cursor-disabled *{ cursor: auto !important; }
+  /* ---------------------- */
+
   @media (max-width:760px){
-    :root{ --tile-size: 56px; --gap:8px; --control-size:36px; }
-    .game-wrap{ gap:12px; flex-direction:column; align-items:center; justify-content:flex-start;}
-    .play-area{ flex-direction:column; align-items:center;}
+    :root{ --tile-size:56px; --gap:10px; --cursor-default-size:22px; --cursor-max-size:60px; }
+    .title{ font-size:20px; }
   }
 </style>
 </head>
-<body class="no-select">
-  <div class="game-wrap" id="app">
-    <div class="panel" id="panel">
+<body>
+  <div class="game-wrap">
+    <div class="panel">
       <div class="header">
-        <div>
-          <div class="title">2048 · 深色 6×6</div>
-          <div style="font-size:12px;color:var(--muted)">达到 2048 则胜利（可继续）</div>
-        </div>
+        <div class="title">2048</div>
         <div class="controls">
-          <div class="score">
-            <div class="label">分数</div>
-            <div class="value" id="score">0</div>
-          </div>
-          <div class="score">
-            <div class="label">最高</div>
-            <div class="value" id="best">0</div>
-          </div>
-          <button class="btn small btn-new" id="newBtn" title="重新开始">新游戏</button>
+          <div class="score"><div class="label">分数</div><div class="value" id="score">0</div></div>
+          <div class="score"><div class="label">最高</div><div class="value" id="best">0</div></div>
+          <button class="btn small" id="newBtn">新游戏</button>
         </div>
       </div>
-
-      <div class="play-area">
-        <div style="position:relative">
-          <!-- board background grid -->
-          <div class="board" id="board" aria-hidden="false"></div>
-          <!-- tiles container (absolute) -->
-          <div id="tiles-layer" style="position:absolute;inset:0;pointer-events:none"></div>
-
-          <!-- overlay for win/lose -->
-          <div id="overlay" style="display:none;position:absolute;inset:0;z-index:50"></div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:12px;max-width:260px">
-          <div class="panel" style="padding:12px; background: linear-gradient(180deg,#18181b,#0f0f11)">
-            <div style="font-weight:700;margin-bottom:8px">控制</div>
-            <div class="info">使用键盘 ← ↑ → ↓ 控制，或在移动设备上滑动。点击“新游戏”可重新开始。到达 2048 时会提示胜利，但可选择继续游戏。</div>
-          </div>
-          <div class="panel" style="padding:12px; display:flex;flex-direction:column;gap:8px">
-            <div style="font-weight:700">小工具</div>
-            <button class="btn btn-help" id="undoBtn" title="撤销（本版本暂不实现）" disabled>撤销</button>
-            <button class="btn" id="shareBtn" title="分享分数">分享分数</button>
-          </div>
-        </div>
-      </div>
+      <div class="board" id="board"></div>
+      <div class="overlay" id="overlay"></div>
     </div>
   </div>
 
-  <!-- custom cursor element -->
-  <div id="customCursor" class="custom-cursor"></div>
+  <!-- 自定义光标元素 -->
+  <div id="customCursor" aria-hidden="true"></div>
 
 <script>
-/*
-  2048 6x6 实现
-  - 简化动画：使用绝对定位 tile 元素并通过 transform 平移
-  - 支持键盘和触摸
-  - 胜利检测但允许继续
-  - 自定义鼠标光标：默认圆形，在按钮上变为方形并尽量与按钮大小匹配
-*/
-
 (() => {
+  /* ====== 游戏（简洁版） ====== */
   const SIZE = 6;
-  const startTiles = 2;
-  const boardEl = document.getElementById('board');
-  const tilesLayer = document.getElementById('tiles-layer');
+  const board = document.getElementById('board');
   const overlay = document.getElementById('overlay');
   const scoreEl = document.getElementById('score');
   const bestEl = document.getElementById('best');
   const newBtn = document.getElementById('newBtn');
 
-  // custom cursor
-  const cursor = document.getElementById('customCursor');
-  const html = document.documentElement;
-  // hide native cursor to use our custom (except on touch)
-  html.classList.add('no-cursor');
-  let lastMouse = {x:0,y:0};
-
-  // board state
-  let grid = [];
-  let score = 0;
-  let best = Number(localStorage.getItem('2048_best6x6') || 0);
+  let grid = [], score = 0, best = +localStorage.getItem('best6x6') || 0, won = false;
   bestEl.textContent = best;
-  let won = false;
-  let over = false;
 
-  // size & positioning
-  function setupBoardBackground(){
-    boardEl.innerHTML = '';
-    for (let r=0;r<SIZE;r++){
-      for (let c=0;c<SIZE;c++){
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        boardEl.appendChild(cell);
-      }
-    }
-  }
+  // 禁止页面在触摸滑动时滚动（防止移动时页面滚动）
+  // 注意：我们只阻止 board 内的 touchmove（而不是全局），以尽量保持其他系统手势
+  board.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
 
-  // helpers
-  function randomInt(max){ return Math.floor(Math.random()*max) }
-  function coordsToIndex(r,c){ return r*SIZE + c }
-
-  function initGrid(){
-    grid = new Array(SIZE*SIZE).fill(0);
-    score = 0;
-    scoreEl.textContent = score;
-    tilesLayer.innerHTML = '';
-    won = false; over = false;
+  function init(){
+    grid = Array(SIZE*SIZE).fill(0);
+    score = 0; won = false;
     overlay.style.display = 'none';
-    for (let i=0;i<startTiles;i++) addRandomTile();
+    board.innerHTML = '';
+    // background cells
+    for(let i=0;i<SIZE*SIZE;i++){
+      const c = document.createElement('div');
+      c.className = 'cell';
+      board.appendChild(c);
+    }
+    addTile(); addTile();
     render();
   }
 
-  function addRandomTile(){
-    const empty = [];
-    grid.forEach((v,i)=>{ if (v===0) empty.push(i) });
-    if (!empty.length) return false;
-    const idx = empty[randomInt(empty.length)];
-    // 10% 4, else 2
-    grid[idx] = Math.random() < 0.1 ? 4 : 2;
-    animateNewTile(idx);
-    return true;
+  function addTile(){
+    const empty = grid.map((v,i)=>v===0?i:null).filter(v=>v!==null);
+    if(!empty.length) return;
+    const idx = empty[Math.floor(Math.random()*empty.length)];
+    grid[idx] = Math.random()<0.1?4:2;
   }
 
-  // animation for new tile
-  function animateNewTile(index){
-    const val = grid[index];
-    const el = createTileEl(val);
-    positionTileEl(el, index, true);
-    tilesLayer.appendChild(el);
-    requestAnimationFrame(()=> el.style.transform += ' scale(1)');
-    setTimeout(()=> { if (el) el.style.transform = el.style.transform.replace(' scale(1)', '') }, 160);
-  }
-
-  function createTileEl(val){
-    const el = document.createElement('div');
-    el.className = 'tile v'+val;
-    el.textContent = val;
-    el.style.position = 'absolute';
-    el.style.width = getTilePx() + 'px';
-    el.style.height = getTilePx() + 'px';
-    el.style.lineHeight = getTilePx() + 'px';
-    el.style.borderRadius = '10px';
-    el.style.transform = 'translate(0px,0px) scale(.01)';
-    el.style.opacity = '0.98';
-    return el;
-  }
-
-  function getTilePx(){
-    const style = getComputedStyle(document.documentElement);
-    const val = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tile-size')) || 84;
-    // tile includes gap; our board inner area uses same size
-    return val;
-  }
-
-  function positionTileEl(el, index, forNew=false){
-    const tileSize = getTilePx();
-    const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 12;
-    const r = Math.floor(index / SIZE);
-    const c = index % SIZE;
-    // compute board top-left
-    const rect = boardEl.getBoundingClientRect();
-    const left = c * (tileSize + gap) + gap/2;
-    const top = r * (tileSize + gap) + gap/2;
-    el.style.transform = `translate(${left}px, ${top}px)`;
-    el.style.width = tileSize + 'px';
-    el.style.height = tileSize + 'px';
-    el.style.lineHeight = tileSize + 'px';
-  }
-
-  // main render: clear and recreate tiles (simpler)
-  function render(){
-    tilesLayer.innerHTML = '';
-    const tileSize = getTilePx();
-    const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 12;
-
-    for (let i=0;i<grid.length;i++){
-      if (grid[i] !== 0){
-        const el = document.createElement('div');
-        el.className = 'tile v' + grid[i];
-        el.textContent = grid[i];
-        const r = Math.floor(i / SIZE);
-        const c = i % SIZE;
-        const left = c * (tileSize + gap) + gap/2;
-        const top = r * (tileSize + gap) + gap/2;
-        el.style.left = left + 'px';
-        el.style.top = top + 'px';
-        el.style.width = tileSize + 'px';
-        el.style.height = tileSize + 'px';
-        el.style.lineHeight = tileSize + 'px';
-        tilesLayer.appendChild(el);
-      }
-    }
-    updateScore();
-  }
-
-  function updateScore(){
-    scoreEl.textContent = score;
-    if (score > best){
-      best = score;
-      bestEl.textContent = best;
-      localStorage.setItem('2048_best6x6', best);
-    }
-  }
-
-  // movement logic (generic)
-  function move(direction){
-    if (over) return;
-    // directions: 'up','down','left','right'
-    // we'll create new grid and moves
-    const previous = grid.slice();
+  function move(dir){
     let moved = false;
-    let mergedThisMove = new Array(SIZE*SIZE).fill(false);
-
-    const vector = {
-      up: {dr:-1, dc:0},
-      down: {dr:1, dc:0},
-      left: {dr:0, dc:-1},
-      right: {dr:0, dc:1}
-    }[direction];
-
-    // order of traversal depends on direction to ensure combining correctly
-    const range = (start, end, step) => {
-      const arr = [];
-      for (let i=start;i!==end;i+=step) arr.push(i);
-      return arr;
-    };
-
-    const rows = range(0,SIZE,1);
-    const cols = range(0,SIZE,1);
-    if (direction === 'down') rows.reverse();
-    if (direction === 'right') cols.reverse();
-
-    for (let r of rows){
-      for (let c of cols){
-        const idx = coordsToIndex(r,c);
-        let value = grid[idx];
-        if (value === 0) continue;
-
-        let cr = r, cc = c;
-        while (true){
-          const nr = cr + vector.dr;
-          const nc = cc + vector.dc;
-          if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) break;
-          const nidx = coordsToIndex(nr,nc);
-          if (grid[nidx] === 0){
-            grid[nidx] = grid[coordsToIndex(cr,cc)];
-            grid[coordsToIndex(cr,cc)] = 0;
-            cr = nr; cc = nc;
-            moved = true;
-          } else if (grid[nidx] === grid[coordsToIndex(cr,cc)] && !mergedThisMove[nidx] && !mergedThisMove[coordsToIndex(cr,cc)]){
-            // merge
-            grid[nidx] = grid[nidx] + grid[coordsToIndex(cr,cc)];
-            grid[coordsToIndex(cr,cc)] = 0;
-            mergedThisMove[nidx] = true;
-            score += grid[nidx];
-            moved = true;
-            // check win
-            if (grid[nidx] === 2048 && !won){
-              won = true;
-              setTimeout(()=> showWinModal(), 120);
-            }
-            break;
-          } else break;
+    const at=(r,c)=>grid[r*SIZE+c];
+    const set=(r,c,v)=>grid[r*SIZE+c]=v;
+    const combine = (list)=>{
+      const arr=list.filter(v=>v);
+      for(let i=0;i<arr.length-1;i++){
+        if(arr[i]===arr[i+1]){
+          arr[i]*=2; score+=arr[i]; arr.splice(i+1,1);
+          if(arr[i]===2048 && !won){ won=true; setTimeout(win,120); }
         }
       }
+      while(arr.length<SIZE)arr.push(0);
+      return arr;
+    };
+    for(let i=0;i<SIZE;i++){
+      let line=[];
+      for(let j=0;j<SIZE;j++) line.push(dir==='left'||dir==='right'?at(i,j):at(j,i));
+      if(dir==='right'||dir==='down') line.reverse();
+      const newLine = combine(line.slice());
+      if(dir==='right'||dir==='down') newLine.reverse();
+      for(let j=0;j<SIZE;j++){
+        const old = dir==='left'||dir==='right'?at(i,j):at(j,i);
+        const nv = newLine[j];
+        if(old !== nv) moved = true;
+        if(dir==='left'||dir==='right') set(i,j,nv); else set(j,i,nv);
+      }
     }
-
-    if (moved){
-      addRandomTile();
-    }
-    render();
-    if (!movesAvailable()){
-      over = true;
-      showLoseOverlay();
-    }
+    if(moved){ addTile(); render(); if(!grid.includes(0) && !canMove()) setTimeout(lose,120); }
   }
 
-  function movesAvailable(){
-    // any empty?
-    if (grid.some(v=>v===0)) return true;
-    // any merges adjacent?
-    for (let r=0;r<SIZE;r++){
-      for (let c=0;c<SIZE;c++){
-        const v = grid[coordsToIndex(r,c)];
-        if (r+1 < SIZE && grid[coordsToIndex(r+1,c)] === v) return true;
-        if (c+1 < SIZE && grid[coordsToIndex(r,c+1)] === v) return true;
-      }
+  function canMove(){
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const v = grid[r*SIZE+c];
+      if(r+1<SIZE && grid[(r+1)*SIZE+c]===v) return true;
+      if(c+1<SIZE && grid[r*SIZE+c+1]===v) return true;
     }
     return false;
   }
 
-  function showWinModal(){
-    overlay.innerHTML = '';
+  function render(){
+    scoreEl.textContent = score;
+    if(score>best){ best=score; localStorage.setItem('best6x6', best); }
+    bestEl.textContent = best;
+    // remove old tiles then add current
+    document.querySelectorAll('.tile').forEach(t => t.remove());
+    const tileSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--tile-size')) || 84;
+    const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 12;
+    grid.forEach((v,i) => {
+      if(!v) return;
+      const t = document.createElement('div');
+      t.className = 'tile v' + v;
+      t.textContent = v;
+      const r = Math.floor(i/SIZE), c = i%SIZE;
+      t.style.width = tileSize + 'px';
+      t.style.height = tileSize + 'px';
+      // left/top: gap + index*(tile+gap)  (match CSS background cells)
+      t.style.left = (c*(tileSize+gap) + gap) + 'px';
+      t.style.top = (r*(tileSize+gap) + gap) + 'px';
+      board.appendChild(t);
+    });
+  }
+
+  function win(){
     overlay.style.display = 'flex';
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div style="font-weight:800;font-size:20px;margin-bottom:6px">你获得了 2048！</div>
-      <div style="color:var(--muted);margin-bottom:12px">恭喜！要继续玩还是重新开始？</div>
+    overlay.innerHTML = `<div class="modal"><h3>🎉 你达到了 2048！</h3>
+      <div style="color:var(--muted);margin:10px 0">恭喜！要继续挑战还是重新开始？</div>
       <div style="display:flex;gap:8px;justify-content:center">
-        <button class="btn" id="continueBtn">继续游戏</button>
+        <button class="btn" id="contBtn">继续</button>
         <button class="btn" id="restartBtn">重新开始</button>
       </div>
-    `;
-    overlay.appendChild(modal);
-    document.getElementById('continueBtn').addEventListener('click', ()=> {
-      overlay.style.display = 'none';
-    });
-    document.getElementById('restartBtn').addEventListener('click', ()=> {
-      overlay.style.display = 'none';
-      initGrid();
-    });
+    </div>`;
+    document.getElementById('contBtn').addEventListener('click', ()=> overlay.style.display='none');
+    document.getElementById('restartBtn').addEventListener('click', ()=> { overlay.style.display='none'; init(); });
   }
 
-  function showLoseOverlay(){
-    overlay.innerHTML = '';
+  function lose(){
     overlay.style.display = 'flex';
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div style="font-weight:800;font-size:20px;margin-bottom:6px">游戏结束</div>
-      <div style="color:var(--muted);margin-bottom:12px">没有可用移动了。</div>
-      <div style="display:flex;gap:8px;justify-content:center">
-        <button class="btn" id="restartBtn2">重新开始</button>
-      </div>
-    `;
-    overlay.appendChild(modal);
-    document.getElementById('restartBtn2').addEventListener('click', ()=> {
-      overlay.style.display = 'none';
-      initGrid();
-    });
+    overlay.innerHTML = `<div class="modal"><h3>💀 游戏结束</h3>
+      <div style="margin-top:8px"><button class="btn" id="againBtn">再试一次</button></div></div>`;
+    document.getElementById('againBtn').addEventListener('click', ()=> { overlay.style.display='none'; init(); });
   }
 
-  // input handling
-  window.addEventListener('keydown', (e)=>{
-    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
-      e.preventDefault();
-      const dir = {
-        ArrowLeft: 'left',
-        ArrowRight: 'right',
-        ArrowUp: 'up',
-        ArrowDown: 'down'
-      }[e.key];
-      move(dir);
-    }
+  // keyboard input
+  window.addEventListener('keydown', e => {
+    const map = { ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right' };
+    if(map[e.key]){ e.preventDefault(); move(map[e.key]); }
   });
 
-  // touch / swipe
+  // touch swipe on board
   let touchStart = null;
-  document.addEventListener('touchstart', (e)=>{
-    if (e.touches.length === 1){
-      touchStart = {x: e.touches[0].clientX, y: e.touches[0].clientY};
-    } else touchStart = null;
-  }, {passive:true});
-  document.addEventListener('touchmove', (e)=>{ /*prevent scrolling? leave default*/}, {passive:true});
-  document.addEventListener('touchend', (e)=>{
-    if (!touchStart) return;
+  board.addEventListener('touchstart', e => {
+    if(e.touches.length===1) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, { passive:true });
+  board.addEventListener('touchend', e => {
+    if(!touchStart) return;
     const end = e.changedTouches[0];
     const dx = end.clientX - touchStart.x;
     const dy = end.clientY - touchStart.y;
     const absX = Math.abs(dx), absY = Math.abs(dy);
-    if (Math.max(absX, absY) > 24){
-      if (absX > absY){
-        move(dx > 0 ? 'right' : 'left');
-      } else {
-        move(dy > 0 ? 'down' : 'up');
-      }
+    if(Math.max(absX, absY) > 20){
+      if(absX > absY) move(dx > 0 ? 'right' : 'left');
+      else move(dy > 0 ? 'down' : 'up');
     }
     touchStart = null;
   });
 
-  // new game button
-  newBtn.addEventListener('click', ()=> initGrid());
+  newBtn.addEventListener('click', () => init());
 
-  // create board background cells
-  setupBoardBackground();
+  init();
 
-  // initial start
-  initGrid();
+  /* ====== 自定义光标逻辑 ====== */
+  const cursor = document.getElementById('customCursor');
+  const html = document.documentElement;
 
-  // ---- custom cursor behavior ----
-  // track mouse and position cursor
-  window.addEventListener('mousemove', (e)=>{
-    lastMouse = {x:e.clientX, y:e.clientY};
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
+  // feature detection: if device is coarse pointer (touch), disable custom cursor
+  function updateCursorMode(){
+    const isCoarse = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+    if(isCoarse){
+      html.classList.remove('no-cursor');
+      html.classList.add('cursor-disabled');
+    } else {
+      html.classList.add('no-cursor'); // hide native
+      html.classList.remove('cursor-disabled');
+    }
+  }
+  updateCursorMode();
+  // listen for changes (e.g., when connecting a mouse to tablet)
+  const media = window.matchMedia('(hover: none), (pointer: coarse)');
+  if(media.addEventListener) media.addEventListener('change', updateCursorMode);
+  else if(media.addListener) media.addListener(updateCursorMode);
+
+  // Ensure custom cursor visible and properly styled
+  cursor.style.width = getComputedStyle(document.documentElement).getPropertyValue('--cursor-default-size') || '28px';
+  cursor.style.height = cursor.style.width;
+  cursor.style.borderRadius = '50%';
+
+  // Smooth follow: track latest mouse and apply position with small requestAnimationFrame
+  let mouseX = 0, mouseY = 0;
+  let targetX = 0, targetY = 0;
+  let rafId = null;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    // if custom cursor disabled (touch), do nothing
+    if(html.classList.contains('cursor-disabled')) return;
+    // immediately move (we use a tiny lerp for smoothness)
+    targetX = mouseX;
+    targetY = mouseY;
+    cursor.style.left = targetX + 'px';
+    cursor.style.top = targetY + 'px';
   });
 
-  // make cursor respond to hovering .btn elements: square shape matching button size
-  function onEnterBtn(e){
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const size = Math.min(rect.width, rect.height);
+  // Hover behavior for buttons: make cursor square and size match button
+  function enterBtn(e){
+    if(html.classList.contains('cursor-disabled')) return;
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    // choose size: use max(width, height) to ensure it encloses the button; cap to --cursor-max-size
+    const computedMax = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cursor-max-size')) || 88;
+    const size = Math.min(Math.max(rect.width, rect.height), computedMax);
     cursor.classList.add('square');
     cursor.style.width = size + 'px';
     cursor.style.height = size + 'px';
-    // center cursor on element's center for nicer effect
-    cursor.style.left = (rect.left + rect.width/2) + 'px';
-    cursor.style.top = (rect.top + rect.height/2) + 'px';
+    // keep cursor following pointer (do NOT jump to center)
+    // but add a subtle scaling up effect via transform: handled by CSS transition
   }
-  function onLeaveBtn(){
+  function leaveBtn(){
+    if(html.classList.contains('cursor-disabled')) return;
     cursor.classList.remove('square');
-    cursor.style.width = '28px';
-    cursor.style.height = '28px';
+    const defaultSize = getComputedStyle(document.documentElement).getPropertyValue('--cursor-default-size') || '28px';
+    cursor.style.width = defaultSize;
+    cursor.style.height = defaultSize;
   }
 
-  // attach hover listeners to dynamically change to square when over .btn
+  // Attach listeners to existing and future buttons
   function watchButtons(){
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(b=>{
-      b.addEventListener('mouseenter', onEnterBtn);
-      b.addEventListener('mouseleave', onLeaveBtn);
-      // also for focus (keyboard)
-      b.addEventListener('focus', (e)=> onEnterBtn({currentTarget: b}));
-      b.addEventListener('blur', onLeaveBtn);
+    document.querySelectorAll('.btn').forEach(b => {
+      // avoid duplicate listeners by marking
+      if(b.__cursorBound) return;
+      b.__cursorBound = true;
+      b.addEventListener('mouseenter', enterBtn);
+      b.addEventListener('mouseleave', leaveBtn);
+      // keyboard focus should also show square
+      b.addEventListener('focus', enterBtn);
+      b.addEventListener('blur', leaveBtn);
     });
   }
-  // initial and also observe for new buttons
   watchButtons();
+  const mo = new MutationObserver(watchButtons);
+  mo.observe(document.body, { childList:true, subtree:true });
 
-  // observe DOM for added .btn (e.g., dynamic modal buttons)
-  const obs = new MutationObserver(()=>{
-    watchButtons();
+  // Hide custom cursor on touchstart (some devices may trigger mousemove then touch)
+  window.addEventListener('touchstart', ()=> {
+    html.classList.add('cursor-disabled');
+    html.classList.remove('no-cursor');
+  }, {passive:true});
+
+  // make sure cursor is hidden on pointerleave of window
+  window.addEventListener('mouseleave', ()=> {
+    cursor.style.opacity = '0';
   });
-  obs.observe(document.body, {childList:true, subtree:true});
-
-  // optional: center cursor when clicking to give small scale
-  document.addEventListener('mousedown', ()=> {
-    cursor.style.transform = 'translate(-50%,-50%) scale(.9)';
-    setTimeout(()=> cursor.style.transform='translate(-50%,-50%)', 120);
+  window.addEventListener('mouseenter', ()=> {
+    cursor.style.opacity = '1';
   });
-
-  // ensure cursor hides when pointer is not available (touch devices)
-  function updateCursorVisibility(){
-    if (window.matchMedia('(hover: none), (pointer: coarse)').matches){
-      html.classList.remove('no-cursor');
-      cursor.style.display = 'none';
-    } else {
-      html.classList.add('no-cursor');
-      cursor.style.display = '';
-    }
-  }
-  updateCursorVisibility();
-  window.matchMedia('(hover: none), (pointer: coarse)').addListener(updateCursorVisibility);
-
-  // share button action
-  const shareBtn = document.getElementById('shareBtn');
-  shareBtn.addEventListener('click', async ()=>{
-    const text = `我在 6x6 2048 中得到 ${score} 分（最佳 ${best}）！`;
-    if (navigator.share){
-      try {
-        await navigator.share({title:'2048 分数', text});
-      } catch(e){ alert('分享失败') }
-    } else {
-      await navigator.clipboard.writeText(text).then(()=> {
-        alert('已复制到剪贴板：' + text);
-      }, ()=> alert('复制失败'));
-    }
-  });
-
-  // on resize, re-render to adjust tile px
-  let resizeTimeout;
-  window.addEventListener('resize', ()=> {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(()=> render(), 100);
-  });
-
-  // expose some debug on window (optional)
-  window._game = { initGrid, move, grid };
 
 })();
 </script>
