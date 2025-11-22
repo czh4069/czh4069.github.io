@@ -3,1146 +3,692 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中国象棋</title>
+    <title>Czh4069 - 网页开发与我的世界Addon开发</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #2a0000; /* 暗红色 */
+            --accent-color: #8B0000;
+            --light-color: #f5f5f5;
+            --dark-color: #0a0a0a;
+            --text-color: #ddd;
+            --text-light: #fff;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-family: 'Courier New', monospace;
         }
-
+        
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            transition: background 0.8s ease;
-            padding: 10px;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #0a0a0a;
+            overflow-x: hidden;
         }
-
+        
         .container {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* 配置界面样式 */
-        #config-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 24px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            color: #444;
-            font-size: 14px;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s;
-            background: white;
-        }
-
-        select:focus, input:focus {
-            border-color: #4a6cf7;
-            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.2);
-            outline: none;
-        }
-
-        /* 安卓15风格按钮 */
-        .android-btn {
-            position: relative;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 100px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            overflow: hidden;
-            margin: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 120px;
-        }
-
-        .android-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        }
-
-        .android-btn::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%);
-            transform-origin: 50% 50%;
-        }
-
-        .android-btn:focus:not(:active)::after {
-            animation: ripple 1s ease-out;
-        }
-
-        @keyframes ripple {
-            0% {
-                transform: scale(0, 0);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(20, 20);
-                opacity: 0;
-            }
-        }
-
-        .primary-btn {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-        }
-
-        .secondary-btn {
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            border: 1px solid #ddd;
-        }
-
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        /* 游戏界面样式 */
-        #game-section {
-            display: none;
-            width: 100%;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .player-info {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            min-width: 150px;
-            flex: 1;
-        }
-
-        .player-name {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-
-        .player-turn {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .active-player {
-            border: 3px solid #4CAF50;
-            box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
-        }
-
-        .chessboard-container {
-            width: 100%;
-            max-width: 500px;
-            position: relative;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 0 20px;
         }
-
-        .chessboard {
-            width: 100%;
-            height: 0;
-            padding-bottom: 111.11%; /* 9:10 宽高比 */
-            background: #e8c48a;
-            border: 2px solid #8B4513;
-            border-radius: 5px;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .grid {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            grid-template-rows: repeat(10, 1fr);
-        }
-
-        .grid-line {
-            position: absolute;
-            background: #000;
-        }
-
-        .horizontal-line {
-            width: 100%;
-            height: 1px;
-            left: 0;
-        }
-
-        .vertical-line {
-            width: 1px;
-            height: 100%;
-            top: 0;
-        }
-
-        .river {
-            position: absolute;
-            width: 100%;
-            height: 10%;
-            top: 45%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            color: #1a5fb4;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-        }
-
-        .palace {
-            position: absolute;
-            width: 25%;
-            height: 20%;
-            border: 2px solid #000;
-            top: 40%;
-        }
-
-        .palace-left {
-            left: 12.5%;
-        }
-
-        .palace-right {
-            right: 12.5%;
-        }
-
-        .diagonal-line {
-            position: absolute;
-            width: 70%;
-            height: 1px;
-            background: #000;
-            transform-origin: 0 0;
-        }
-
-        .diagonal-top-left {
-            top: 40%;
-            left: 12.5%;
-            transform: rotate(45deg);
-        }
-
-        .diagonal-bottom-left {
-            bottom: 40%;
-            left: 12.5%;
-            transform: rotate(-45deg);
-        }
-
-        .diagonal-top-right {
-            top: 40%;
-            right: 12.5%;
-            transform: rotate(-45deg);
-        }
-
-        .diagonal-bottom-right {
-            bottom: 40%;
-            right: 12.5%;
-            transform: rotate(45deg);
-        }
-
-        .chess-piece {
-            position: absolute;
-            width: 10%;
-            height: 10%;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-            user-select: none;
-            transform: translate(-50%, -50%);
-        }
-
-        .chess-piece.red {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-            color: #fff;
-            border: 2px solid #b71c1c;
-        }
-
-        .chess-piece.black {
-            background: linear-gradient(135deg, #424242, #212121);
-            color: #fff;
-            border: 2px solid #000;
-        }
-
-        .chess-piece.selected {
-            box-shadow: 0 0 0 3px #4CAF50, 0 0 15px #4CAF50;
-            transform: translate(-50%, -50%) scale(1.1);
-        }
-
-        .game-controls {
-            margin-top: 15px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        /* 游戏规则弹窗 */
-        .modal {
-            display: none;
+        
+        /* 代码瀑布背景 */
+        #matrix-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
+            z-index: -1;
+            opacity: 0.7;
+        }
+        
+        /* 恐怖风格欢迎页面 */
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: #000;
+            display: flex;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            z-index: 9999;
+            transition: opacity 1.5s ease;
+            overflow: hidden;
         }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            max-width: 500px;
+        
+        .welcome-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 0, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 0, 0, 0.2) 0%, transparent 50%);
+            animation: pulse 4s infinite alternate;
         }
-
-        .modal-header {
+        
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+        
+        .welcome-text {
+            font-size: 5rem;
+            color: #8B0000;
+            text-align: center;
+            font-weight: bold;
+            text-shadow: 
+                0 0 10px #8B0000,
+                0 0 20px #8B0000,
+                0 0 40px #8B0000;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 5px;
+            animation: glitch 5s infinite;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            5% { transform: translate(-2px, 2px); }
+            10% { transform: translate(-2px, -2px); }
+            15% { transform: translate(2px, 2px); }
+            20% { transform: translate(2px, -2px); }
+            50% { transform: translate(0); }
+        }
+        
+        .typed-cursor {
+            font-size: 5rem;
+            color: #8B0000;
+            text-shadow: 
+                0 0 10px #8B0000,
+                0 0 20px #8B0000;
+            animation: blink 1s infinite, flicker 0.5s infinite;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* 导航栏 */
+        header {
+            background-color: rgba(42, 0, 0, 0.9);
+            color: var(--text-light);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8B0000;
+            text-shadow: 0 0 5px #8B0000;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 2rem;
+            position: relative;
+        }
+        
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+            padding: 5px 0;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #8B0000;
+            transition: width 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #8B0000;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        /* 英雄区域 */
+        .hero {
+            padding: 150px 0 100px;
+            text-align: center;
+            background: rgba(42, 0, 0, 0.7);
+            color: var(--text-light);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 0, 0, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 0, 0, 0.2) 0%, transparent 50%);
+            animation: float 10s infinite alternate;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); }
+            100% { transform: translateY(-20px) translateX(10px); }
+        }
+        
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background-color: var(--light-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* 关于区域 */
+        .about {
+            padding: 80px 0;
+            background-color: rgba(42, 0, 0, 0.7);
+            color: var(--text-light);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .about::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(139, 0, 0, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(139, 0, 0, 0.1) 0%, transparent 50%);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2rem;
+            color: var(--light-color);
+            text-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .skill-card {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 30px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(139, 0, 0, 0.3);
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(139, 0, 0, 0.3);
+        }
+        
+        .skill-card i {
+            font-size: 2.5rem;
+            color: #8B0000;
             margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
         }
-
-        .modal-title {
-            font-size: 20px;
-            color: #333;
+        
+        .skill-card h3 {
+            margin-bottom: 15px;
+            color: var(--light-color);
         }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #666;
+        
+        /* 联系区域 */
+        .contact {
+            padding: 80px 0;
+            background-color: rgba(42, 0, 0, 0.7);
+            color: var(--text-light);
+            position: relative;
+            overflow: hidden;
         }
-
-        .rules-list {
-            text-align: left;
-            line-height: 1.5;
-            font-size: 14px;
+        
+        .contact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 0, 0, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 0, 0, 0.1) 0%, transparent 50%);
         }
-
-        .rules-list h3 {
-            margin: 12px 0 6px;
-            color: #444;
-            font-size: 16px;
+        
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            position: relative;
+            z-index: 2;
         }
-
-        .rules-list ul {
-            margin-left: 18px;
-            margin-bottom: 12px;
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid rgba(139, 0, 0, 0.3);
         }
-
-        .rules-list li {
-            margin-bottom: 4px;
+        
+        .contact-item i {
+            font-size: 1.5rem;
+            color: #8B0000;
+            margin-right: 15px;
+            text-shadow: 0 0 5px rgba(139, 0, 0, 0.5);
         }
-
-        /* 移动端优化 */
-        @media (max-width: 480px) {
-            .chess-piece {
-                font-size: 14px;
+        
+        /* 社交区域 */
+        .social {
+            padding: 80px 0;
+            background-color: rgba(42, 0, 0, 0.7);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .social::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(139, 0, 0, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(139, 0, 0, 0.1) 0%, transparent 50%);
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(42, 0, 0, 0.7);
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s, transform 0.3s;
+            border: 1px solid rgba(139, 0, 0, 0.5);
+            box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
+        }
+        
+        .social-link:hover {
+            background-color: #8B0000;
+            color: var(--primary-color);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.7);
+        }
+        
+        /* 页脚 */
+        footer {
+            background-color: rgba(42, 0, 0, 0.9);
+            color: var(--text-light);
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 50% 0%, rgba(139, 0, 0, 0.2) 0%, transparent 70%);
+        }
+        
+        footer p {
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
             }
             
-            .player-info {
-                min-width: 130px;
-                padding: 10px 15px;
+            .hero h1 {
+                font-size: 2rem;
             }
             
-            .player-name {
-                font-size: 14px;
+            .hero p {
+                font-size: 1rem;
             }
             
-            .player-turn {
-                font-size: 11px;
+            .welcome-text {
+                font-size: 3rem;
             }
             
-            .river {
-                font-size: 16px;
-            }
-            
-            .android-btn {
-                padding: 10px 20px;
-                min-width: 110px;
-                font-size: 13px;
+            .typed-cursor {
+                font-size: 3rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 配置界面 -->
-        <section id="config-section">
-            <h1>中国象棋游戏设置</h1>
-            
-            <div class="form-group">
-                <label for="player-count">游戏人数</label>
-                <select id="player-count">
-                    <option value="1">1人 (对战AI)</option>
-                    <option value="2">2人 (双人对战)</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="player1-name">第一名玩家名称</label>
-                <input type="text" id="player1-name" placeholder="请输入玩家1名称" value="玩家1">
-            </div>
-            
-            <div class="form-group">
-                <label for="player2-name">第二名玩家名称</label>
-                <input type="text" id="player2-name" placeholder="请输入玩家2名称" value="玩家2">
-            </div>
-            
-            <div class="form-group">
-                <label for="player1-color">第一名玩家喜欢的颜色</label>
-                <input type="color" id="player1-color" value="#4a6cf7">
-            </div>
-            
-            <div class="form-group">
-                <label for="player2-color">第二名玩家喜欢的颜色</label>
-                <input type="color" id="player2-color" value="#f74a4a">
-            </div>
-            
-            <div class="btn-group">
-                <button id="start-btn" class="android-btn primary-btn">开始游戏</button>
-                <button id="rules-btn" class="android-btn secondary-btn">游戏玩法</button>
-            </div>
-        </section>
-        
-        <!-- 游戏界面 -->
-        <section id="game-section">
-            <div class="game-header">
-                <div id="player1-info" class="player-info active-player">
-                    <div class="player-name" id="p1-name">玩家1</div>
-                    <div class="player-turn">当前回合</div>
-                </div>
-                
-                <div id="player2-info" class="player-info">
-                    <div class="player-name" id="p2-name">玩家2</div>
-                    <div class="player-turn">等待中</div>
-                </div>
-            </div>
-            
-            <div class="chessboard-container">
-                <div class="chessboard" id="chessboard">
-                    <!-- 棋盘网格线 -->
-                    <div class="grid">
-                        <!-- 横线 -->
-                        <div class="grid-line horizontal-line" style="top: 0%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 10%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 20%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 30%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 40%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 50%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 60%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 70%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 80%;"></div>
-                        <div class="grid-line horizontal-line" style="top: 90%;"></div>
-                        
-                        <!-- 竖线 -->
-                        <div class="grid-line vertical-line" style="left: 0%;"></div>
-                        <div class="grid-line vertical-line" style="left: 12.5%;"></div>
-                        <div class="grid-line vertical-line" style="left: 25%;"></div>
-                        <div class="grid-line vertical-line" style="left: 37.5%;"></div>
-                        <div class="grid-line vertical-line" style="left: 50%;"></div>
-                        <div class="grid-line vertical-line" style="left: 62.5%;"></div>
-                        <div class="grid-line vertical-line" style="left: 75%;"></div>
-                        <div class="grid-line vertical-line" style="left: 87.5%;"></div>
-                        <div class="grid-line vertical-line" style="left: 100%;"></div>
-                    </div>
-                    
-                    <!-- 楚河汉界 -->
-                    <div class="river">楚 河 汉 界</div>
-                    
-                    <!-- 九宫格 -->
-                    <div class="palace palace-left">
-                        <div class="diagonal-line diagonal-top-left"></div>
-                        <div class="diagonal-line diagonal-bottom-left"></div>
-                    </div>
-                    <div class="palace palace-right">
-                        <div class="diagonal-line diagonal-top-right"></div>
-                        <div class="diagonal-line diagonal-bottom-right"></div>
-                    </div>
-                    
-                    <!-- 棋子将由JavaScript动态生成 -->
-                </div>
-            </div>
-            
-            <div class="game-controls">
-                <button id="restart-btn" class="android-btn secondary-btn">重新开始</button>
-                <button id="back-to-config" class="android-btn secondary-btn">返回设置</button>
-            </div>
-        </section>
-    </div>
-    
-    <!-- 游戏规则弹窗 -->
-    <div id="rules-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">中国象棋规则</h2>
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="rules-list">
-                <h3>棋盘与棋子</h3>
-                <p>棋盘由9条竖线和10条横线交叉组成，共90个交叉点。棋子分为红黑两组，每组各有16个棋子。</p>
-                
-                <h3>棋子走法</h3>
-                <ul>
-                    <li><strong>将/帅</strong>：只能在九宫内移动，每次一步，横竖均可</li>
-                    <li><strong>士/仕</strong>：只能在九宫内斜线移动，每次一步</li>
-                    <li><strong>象/相</strong>：走"田"字，不能过河，且田字中心不能有棋子</li>
-                    <li><strong>马</strong>：走"日"字，且马腿不能有棋子阻挡</li>
-                    <li><strong>车</strong>：横竖任意移动，不能越过其他棋子</li>
-                    <li><strong>炮</strong>：移动同车，但吃子时必须隔一个棋子</li>
-                    <li><strong>兵/卒</strong>：每次一步，过河前只能向前，过河后可左右移动</li>
-                </ul>
-                
-                <h3>胜负判定</h3>
-                <p>将死对方的将/帅即为胜利。当一方无法避免将/帅被吃掉时，即为"将死"。</p>
-                
-                <h3>游戏流程</h3>
-                <p>红方先行，双方轮流走子，每次只能移动一个棋子。点击选中棋子，再点击目标位置移动。</p>
-            </div>
+    <!-- 代码瀑布背景 -->
+    <canvas id="matrix-bg"></canvas>
+
+    <!-- 恐怖风格欢迎页面 -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-text">
+            <span id="typed-text"></span><span class="typed-cursor">|</span>
         </div>
     </div>
 
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">Czh4069</div>
+                <ul class="nav-links">
+                    <li><a href="#home">首页</a></li>
+                    <li><a href="#about">关于我</a></li>
+                    <li><a href="#contact">联系方式</a></li>
+                    <li><a href="#social">社交链接</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <h1>Czh4069</h1>
+            <p>网页开发 & 我的世界Addon开发</p>
+            <p>位置: 中国</p>
+        </div>
+    </section>
+
+    <!-- 关于区域 -->
+    <section class="about" id="about">
+        <div class="container">
+            <h2 class="section-title">专业领域</h2>
+            <div class="skills">
+                <div class="skill-card">
+                    <i class="fas fa-code"></i>
+                    <h3>网页开发</h3>
+                    <p>专注于前端开发，熟练掌握HTML、CSS、JavaScript及相关框架，能够创建响应式和用户友好的网站。</p>
+                </div>
+                <div class="skill-card">
+                    <i class="fas fa-cube"></i>
+                    <h3>我的世界Addon开发</h3>
+                    <p>拥有丰富的我的世界Addon开发经验，能够创建自定义物品、生物、结构和游戏机制。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系区域 -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2 class="section-title">联系方式</h2>
+            <div class="contact-info">
+                <div class="contact-column">
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>15363144388</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span>15363935466</span>
+                    </div>
+                </div>
+                <div class="contact-column">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>chenzhehong4069@outlook.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>czh4069@qq.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 社交区域 -->
+    <section class="social" id="social">
+        <div class="container">
+            <h2 class="section-title">社交链接</h2>
+            <div class="social-links">
+                <!-- 修改B站链接为搜索链接 -->
+                <a href="https://search.bilibili.com/all?keyword=czh4069" class="social-link" target="_blank" title="在B站搜索czh4069">
+                    <i class="fab fa-bilibili"></i>
+                </a>
+                <a href="https://github.com/czh4069" class="social-link" target="_blank">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Czh4069. 保留所有权利.</p>
+        </div>
+    </footer>
+
     <script>
-        // 配置数据
-        let gameConfig = {
-            playerCount: 1,
-            player1Name: '玩家1',
-            player2Name: '玩家2',
-            player1Color: '#4a6cf7',
-            player2Color: '#f74a4a'
-        };
-
-        // 游戏状态
-        let gameState = {
-            currentPlayer: 1, // 1表示玩家1(红方)，2表示玩家2(黑方)
-            selectedPiece: null,
-            pieces: [],
-            gameStarted: false
-        };
-
-        // DOM元素
-        const configSection = document.getElementById('config-section');
-        const gameSection = document.getElementById('game-section');
-        const playerCountSelect = document.getElementById('player-count');
-        const player1NameInput = document.getElementById('player1-name');
-        const player2NameInput = document.getElementById('player2-name');
-        const player1ColorInput = document.getElementById('player1-color');
-        const player2ColorInput = document.getElementById('player2-color');
-        const startBtn = document.getElementById('start-btn');
-        const rulesBtn = document.getElementById('rules-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const backToConfigBtn = document.getElementById('back-to-config');
-        const player1Info = document.getElementById('player1-info');
-        const player2Info = document.getElementById('player2-info');
-        const p1NameDisplay = document.getElementById('p1-name');
-        const p2NameDisplay = document.getElementById('p2-name');
-        const rulesModal = document.getElementById('rules-modal');
-        const closeModalBtn = document.querySelector('.close-btn');
-        const chessboard = document.getElementById('chessboard');
-
-        // 初始化游戏
-        function initGame() {
-            // 保存配置
-            gameConfig.playerCount = parseInt(playerCountSelect.value);
-            gameConfig.player1Name = player1NameInput.value || '玩家1';
-            gameConfig.player2Name = player2NameInput.value || '玩家2';
-            gameConfig.player1Color = player1ColorInput.value;
-            gameConfig.player2Color = player2ColorInput.value;
-
-            // 更新显示
-            p1NameDisplay.textContent = gameConfig.player1Name;
-            p2NameDisplay.textContent = gameConfig.player2Name;
-
-            // 切换到游戏界面
-            configSection.style.display = 'none';
-            gameSection.style.display = 'flex';
-
-            // 设置初始背景色
-            document.body.style.background = gameConfig.player1Color;
-
-            // 初始化棋盘
-            initChessboard();
-
-            // 开始游戏
-            gameState.gameStarted = true;
-            updatePlayerTurn();
+        // 代码瀑布背景效果
+        const canvas = document.getElementById('matrix-bg');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置canvas尺寸为窗口尺寸
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        // 字符集 - 使用代码相关字符，减少01数量
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
+        
+        // 设置字体大小
+        const fontSize = 14;
+        
+        // 计算列数
+        const columns = Math.floor(canvas.width / fontSize);
+        
+        // 创建雨滴数组
+        const drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
         }
-
-        // 初始化棋盘和棋子
-        function initChessboard() {
-            // 清空棋盘
-            const existingPieces = document.querySelectorAll('.chess-piece');
-            existingPieces.forEach(piece => piece.remove());
-
-            // 初始化棋子位置
-            gameState.pieces = [
-                // 红方棋子 (玩家1)
-                { id: 'r_ju1', type: '车', side: 'red', x: 0, y: 9 },
-                { id: 'r_ma1', type: '马', side: 'red', x: 1, y: 9 },
-                { id: 'r_xiang1', type: '相', side: 'red', x: 2, y: 9 },
-                { id: 'r_shi1', type: '仕', side: 'red', x: 3, y: 9 },
-                { id: 'r_jiang', type: '帅', side: 'red', x: 4, y: 9 },
-                { id: 'r_shi2', type: '仕', side: 'red', x: 5, y: 9 },
-                { id: 'r_xiang2', type: '相', side: 'red', x: 6, y: 9 },
-                { id: 'r_ma2', type: '马', side: 'red', x: 7, y: 9 },
-                { id: 'r_ju2', type: '车', side: 'red', x: 8, y: 9 },
-                { id: 'r_pao1', type: '炮', side: 'red', x: 1, y: 7 },
-                { id: 'r_pao2', type: '炮', side: 'red', x: 7, y: 7 },
-                { id: 'r_bing1', type: '兵', side: 'red', x: 0, y: 6 },
-                { id: 'r_bing2', type: '兵', side: 'red', x: 2, y: 6 },
-                { id: 'r_bing3', type: '兵', side: 'red', x: 4, y: 6 },
-                { id: 'r_bing4', type: '兵', side: 'red', x: 6, y: 6 },
-                { id: 'r_bing5', type: '兵', side: 'red', x: 8, y: 6 },
-
-                // 黑方棋子 (玩家2)
-                { id: 'b_ju1', type: '车', side: 'black', x: 0, y: 0 },
-                { id: 'b_ma1', type: '马', side: 'black', x: 1, y: 0 },
-                { id: 'b_xiang1', type: '象', side: 'black', x: 2, y: 0 },
-                { id: 'b_shi1', type: '士', side: 'black', x: 3, y: 0 },
-                { id: 'b_jiang', type: '将', side: 'black', x: 4, y: 0 },
-                { id: 'b_shi2', type: '士', side: 'black', x: 5, y: 0 },
-                { id: 'b_xiang2', type: '象', side: 'black', x: 6, y: 0 },
-                { id: 'b_ma2', type: '马', side: 'black', x: 7, y: 0 },
-                { id: 'b_ju2', type: '车', side: 'black', x: 8, y: 0 },
-                { id: 'b_pao1', type: '炮', side: 'black', x: 1, y: 2 },
-                { id: 'b_pao2', type: '炮', side: 'black', x: 7, y: 2 },
-                { id: 'b_zu1', type: '卒', side: 'black', x: 0, y: 3 },
-                { id: 'b_zu2', type: '卒', side: 'black', x: 2, y: 3 },
-                { id: 'b_zu3', type: '卒', side: 'black', x: 4, y: 3 },
-                { id: 'b_zu4', type: '卒', side: 'black', x: 6, y: 3 },
-                { id: 'b_zu5', type: '卒', side: 'black', x: 8, y: 3 }
-            ];
-
-            // 创建棋子DOM元素
-            gameState.pieces.forEach(piece => {
-                const pieceElement = document.createElement('div');
-                pieceElement.className = `chess-piece ${piece.side}`;
-                pieceElement.id = piece.id;
-                pieceElement.textContent = piece.type;
+        
+        // 绘制函数
+        function draw() {
+            // 半透明黑色背景，实现拖尾效果
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 设置字体和颜色
+            ctx.font = `${fontSize}px 'Courier New'`;
+            ctx.fillStyle = '#8B0000';
+            
+            // 绘制字符
+            for (let i = 0; i < drops.length; i++) {
+                // 随机选择字符
+                const text = chars[Math.floor(Math.random() * chars.length)];
                 
-                // 设置棋子位置
-                updatePiecePosition(pieceElement, piece.x, piece.y);
+                // 绘制字符
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
                 
-                // 添加点击事件
-                pieceElement.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    handlePieceClick(piece);
-                });
-                
-                chessboard.appendChild(pieceElement);
-            });
-
-            // 添加棋盘点击事件（用于移动棋子到空位置）
-            chessboard.addEventListener('click', handleBoardClick);
-        }
-
-        // 更新棋子位置
-        function updatePiecePosition(pieceElement, x, y) {
-            const cellWidth = 100 / 9;
-            const cellHeight = 100 / 10;
-            
-            // 计算棋子在棋盘上的百分比位置
-            const leftPercent = (x * cellWidth) + (cellWidth / 2);
-            const topPercent = (y * cellHeight) + (cellHeight / 2);
-            
-            pieceElement.style.left = `${leftPercent}%`;
-            pieceElement.style.top = `${topPercent}%`;
-        }
-
-        // 处理棋盘点击（移动棋子到空位置）
-        function handleBoardClick(e) {
-            if (!gameState.gameStarted || !gameState.selectedPiece) return;
-            
-            // 计算点击的棋盘坐标
-            const rect = chessboard.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const cellWidth = rect.width / 9;
-            const cellHeight = rect.height / 10;
-            
-            const targetX = Math.floor(x / cellWidth);
-            const targetY = Math.floor(y / cellHeight);
-            
-            // 确保坐标在有效范围内
-            if (targetX >= 0 && targetX < 9 && targetY >= 0 && targetY < 10) {
-                movePiece(gameState.selectedPiece, targetX, targetY);
-            }
-        }
-
-        // 处理棋子点击
-        function handlePieceClick(piece) {
-            // 如果游戏未开始，不处理点击
-            if (!gameState.gameStarted) return;
-            
-            // 检查是否是当前玩家的棋子
-            if ((gameState.currentPlayer === 1 && piece.side === 'red') || 
-                (gameState.currentPlayer === 2 && piece.side === 'black')) {
-                
-                // 选中棋子
-                if (gameState.selectedPiece) {
-                    document.getElementById(gameState.selectedPiece.id).classList.remove('selected');
+                // 重置雨滴位置
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
                 }
                 
-                gameState.selectedPiece = piece;
-                document.getElementById(piece.id).classList.add('selected');
-            } else if (gameState.selectedPiece) {
-                // 尝试移动棋子到目标位置（吃子）
-                movePiece(gameState.selectedPiece, piece.x, piece.y);
+                // 移动雨滴
+                drops[i]++;
             }
         }
-
-        // 移动棋子
-        function movePiece(piece, targetX, targetY) {
-            // 检查移动是否合法
-            if (!isValidMove(piece, targetX, targetY)) {
-                return false;
-            }
+        
+        // 调整canvas大小
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
             
-            // 检查目标位置是否有敌方棋子
-            const targetPiece = gameState.pieces.find(p => p.x === targetX && p.y === targetY);
-            if (targetPiece && targetPiece.side !== piece.side) {
-                // 吃掉敌方棋子
-                const targetElement = document.getElementById(targetPiece.id);
-                if (targetElement) {
-                    targetElement.remove();
+            // 重新计算列数
+            const newColumns = Math.floor(canvas.width / fontSize);
+            
+            // 调整雨滴数组
+            if (newColumns > drops.length) {
+                for (let i = drops.length; i < newColumns; i++) {
+                    drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
                 }
-                gameState.pieces = gameState.pieces.filter(p => p.id !== targetPiece.id);
-                
-                // 检查是否将死
-                if (targetPiece.type === '将' || targetPiece.type === '帅') {
+            } else {
+                drops.length = newColumns;
+            }
+        });
+        
+        // 启动动画
+        setInterval(draw, 33);
+        
+        // 恐怖风格打字机效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const typedText = document.getElementById('typed-text');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const text = "HELLO...";
+            let index = 0;
+            
+            function typeWriter() {
+                if (index < text.length) {
+                    // 随机添加故障效果
+                    if (Math.random() < 0.1) {
+                        typedText.innerHTML += '<span style="color: #ff0000; text-shadow: 0 0 10px #ff0000;">' + text.charAt(index) + '</span>';
+                    } else {
+                        typedText.innerHTML += text.charAt(index);
+                    }
+                    
+                    // 随机延迟，模拟故障效果
+                    const delay = Math.random() * 200 + 100;
+                    index++;
+                    setTimeout(typeWriter, delay);
+                } else {
+                    // 打字完成后等待2秒，然后淡出欢迎页面
                     setTimeout(() => {
-                        alert(`${gameState.currentPlayer === 1 ? gameConfig.player1Name : gameConfig.player2Name} 获胜！`);
-                        gameState.gameStarted = false;
-                    }, 100);
+                        welcomeScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            welcomeScreen.style.display = 'none';
+                        }, 1500);
+                    }, 2000);
                 }
             }
             
-            // 更新棋子位置
-            piece.x = targetX;
-            piece.y = targetY;
-            
-            // 更新DOM
-            const pieceElement = document.getElementById(piece.id);
-            updatePiecePosition(pieceElement, targetX, targetY);
-            
-            // 取消选中
-            pieceElement.classList.remove('selected');
-            gameState.selectedPiece = null;
-            
-            // 切换玩家
-            gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
-            updatePlayerTurn();
-            
-            return true;
-        }
-
-        // 验证移动是否合法
-        function isValidMove(piece, targetX, targetY) {
-            // 不能移动到自己的棋子上
-            const targetPiece = gameState.pieces.find(p => p.x === targetX && p.y === targetY);
-            if (targetPiece && targetPiece.side === piece.side) {
-                return false;
-            }
-            
-            // 根据不同棋子类型验证移动规则
-            switch (piece.type) {
-                case '车':
-                    return isValidCheMove(piece, targetX, targetY);
-                case '马':
-                    return isValidMaMove(piece, targetX, targetY);
-                case '相':
-                case '象':
-                    return isValidXiangMove(piece, targetX, targetY);
-                case '仕':
-                case '士':
-                    return isValidShiMove(piece, targetX, targetY);
-                case '帅':
-                case '将':
-                    return isValidJiangMove(piece, targetX, targetY);
-                case '炮':
-                    return isValidPaoMove(piece, targetX, targetY);
-                case '兵':
-                case '卒':
-                    return isValidBingMove(piece, targetX, targetY);
-                default:
-                    return false;
-            }
-        }
-
-        // 车的移动规则
-        function isValidCheMove(piece, targetX, targetY) {
-            // 车只能直线移动
-            if (piece.x !== targetX && piece.y !== targetY) {
-                return false;
-            }
-            
-            // 检查路径上是否有其他棋子
-            if (piece.x === targetX) {
-                // 垂直移动
-                const startY = Math.min(piece.y, targetY);
-                const endY = Math.max(piece.y, targetY);
-                for (let y = startY + 1; y < endY; y++) {
-                    if (gameState.pieces.some(p => p.x === piece.x && p.y === y)) {
-                        return false;
-                    }
-                }
-            } else {
-                // 水平移动
-                const startX = Math.min(piece.x, targetX);
-                const endX = Math.max(piece.x, targetX);
-                for (let x = startX + 1; x < endX; x++) {
-                    if (gameState.pieces.some(p => p.x === x && p.y === piece.y)) {
-                        return false;
-                    }
-                }
-            }
-            
-            return true;
-        }
-
-        // 马的移动规则
-        function isValidMaMove(piece, targetX, targetY) {
-            const dx = Math.abs(targetX - piece.x);
-            const dy = Math.abs(targetY - piece.y);
-            
-            // 马走"日"字
-            if (!((dx === 1 && dy === 2) || (dx === 2 && dy === 1))) {
-                return false;
-            }
-            
-            // 检查马腿是否被绊
-            if (dx === 2) {
-                // 水平方向移动2格，检查中间位置
-                const middleX = (piece.x + targetX) / 2;
-                if (gameState.pieces.some(p => p.x === middleX && p.y === piece.y)) {
-                    return false;
-                }
-            } else {
-                // 垂直方向移动2格，检查中间位置
-                const middleY = (piece.y + targetY) / 2;
-                if (gameState.pieces.some(p => p.x === piece.x && p.y === middleY)) {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-
-        // 相/象的移动规则
-        function isValidXiangMove(piece, targetX, targetY) {
-            const dx = Math.abs(targetX - piece.x);
-            const dy = Math.abs(targetY - piece.y);
-            
-            // 相走"田"字
-            if (dx !== 2 || dy !== 2) {
-                return false;
-            }
-            
-            // 检查象眼是否被塞
-            const middleX = (piece.x + targetX) / 2;
-            const middleY = (piece.y + targetY) / 2;
-            if (gameState.pieces.some(p => p.x === middleX && p.y === middleY)) {
-                return false;
-            }
-            
-            // 相不能过河
-            if (piece.side === 'red' && targetY < 5) {
-                return false;
-            }
-            if (piece.side === 'black' && targetY > 4) {
-                return false;
-            }
-            
-            return true;
-        }
-
-        // 仕/士的移动规则
-        function isValidShiMove(piece, targetX, targetY) {
-            const dx = Math.abs(targetX - piece.x);
-            const dy = Math.abs(targetY - piece.y);
-            
-            // 士走斜线，每次一格
-            if (dx !== 1 || dy !== 1) {
-                return false;
-            }
-            
-            // 士不能出九宫
-            if (targetX < 3 || targetX > 5) {
-                return false;
-            }
-            
-            if (piece.side === 'red' && (targetY < 7 || targetY > 9)) {
-                return false;
-            }
-            if (piece.side === 'black' && (targetY < 0 || targetY > 2)) {
-                return false;
-            }
-            
-            return true;
-        }
-
-        // 将/帅的移动规则
-        function isValidJiangMove(piece, targetX, targetY) {
-            const dx = Math.abs(targetX - piece.x);
-            const dy = Math.abs(targetY - piece.y);
-            
-            // 将/帅每次只能移动一格
-            if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
-                // 将/帅不能出九宫
-                if (targetX < 3 || targetX > 5) {
-                    return false;
-                }
-                
-                if (piece.side === 'red' && (targetY < 7 || targetY > 9)) {
-                    return false;
-                }
-                if (piece.side === 'black' && (targetY < 0 || targetY > 2)) {
-                    return false;
-                }
-                
-                return true;
-            }
-            
-            return false;
-        }
-
-        // 炮的移动规则
-        function isValidPaoMove(piece, targetX, targetY) {
-            // 炮只能直线移动
-            if (piece.x !== targetX && piece.y !== targetY) {
-                return false;
-            }
-            
-            const targetPiece = gameState.pieces.find(p => p.x === targetX && p.y === targetY);
-            const piecesInPath = [];
-            
-            if (piece.x === targetX) {
-                // 垂直移动
-                const startY = Math.min(piece.y, targetY);
-                const endY = Math.max(piece.y, targetY);
-                for (let y = startY + 1; y < endY; y++) {
-                    if (gameState.pieces.some(p => p.x === piece.x && p.y === y)) {
-                        piecesInPath.push(gameState.pieces.find(p => p.x === piece.x && p.y === y));
-                    }
-                }
-            } else {
-                // 水平移动
-                const startX = Math.min(piece.x, targetX);
-                const endX = Math.max(piece.x, targetX);
-                for (let x = startX + 1; x < endX; x++) {
-                    if (gameState.pieces.some(p => p.x === x && p.y === piece.y)) {
-                        piecesInPath.push(gameState.pieces.find(p => p.x === x && p.y === piece.y));
-                    }
-                }
-            }
-            
-            // 炮移动时，路径上不能有棋子
-            if (!targetPiece && piecesInPath.length > 0) {
-                return false;
-            }
-            
-            // 炮吃子时，路径上必须有一个棋子
-            if (targetPiece && targetPiece.side !== piece.side && piecesInPath.length !== 1) {
-                return false;
-            }
-            
-            return true;
-        }
-
-        // 兵/卒的移动规则
-        function isValidBingMove(piece, targetX, targetY) {
-            const dx = Math.abs(targetX - piece.x);
-            const dy = targetY - piece.y;
-            
-            // 兵/卒每次只能移动一格
-            if (dx + Math.abs(dy) !== 1) {
-                return false;
-            }
-            
-            // 根据是否过河判断移动方向
-            if (piece.side === 'red') {
-                // 红方兵
-                if (piece.y > 4) {
-                    // 未过河，只能向前
-                    if (dy !== -1) return false;
-                } else {
-                    // 已过河，可以向前或左右
-                    if (dy !== -1 && dx !== 1) return false;
-                }
-            } else {
-                // 黑方卒
-                if (piece.y < 5) {
-                    // 未过河，只能向前
-                    if (dy !== 1) return false;
-                } else {
-                    // 已过河，可以向前或左右
-                    if (dy !== 1 && dx !== 1) return false;
-                }
-            }
-            
-            return true;
-        }
-
-        // 更新玩家回合显示
-        function updatePlayerTurn() {
-            if (gameState.currentPlayer === 1) {
-                player1Info.classList.add('active-player');
-                player2Info.classList.remove('active-player');
-                player1Info.querySelector('.player-turn').textContent = '当前回合';
-                player2Info.querySelector('.player-turn').textContent = '等待中';
-                document.body.style.background = gameConfig.player1Color;
-            } else {
-                player1Info.classList.remove('active-player');
-                player2Info.classList.add('active-player');
-                player1Info.querySelector('.player-turn').textContent = '等待中';
-                player2Info.querySelector('.player-turn').textContent = '当前回合';
-                document.body.style.background = gameConfig.player2Color;
-            }
-        }
-
-        // 返回配置界面
-        function backToConfig() {
-            gameSection.style.display = 'none';
-            configSection.style.display = 'block';
-            gameState.gameStarted = false;
-        }
-
-        // 事件监听
-        startBtn.addEventListener('click', initGame);
-        rulesBtn.addEventListener('click', () => {
-            rulesModal.style.display = 'flex';
+            // 延迟开始打字效果
+            setTimeout(typeWriter, 1000);
         });
-        restartBtn.addEventListener('click', () => {
-            if (confirm('确定要重新开始游戏吗？')) {
-                initGame();
-            }
-        });
-        backToConfigBtn.addEventListener('click', backToConfig);
-        closeModalBtn.addEventListener('click', () => {
-            rulesModal.style.display = 'none';
-        });
-        window.addEventListener('click', (e) => {
-            if (e.target === rulesModal) {
-                rulesModal.style.display = 'none';
-            }
-        });
-
-        // 安卓15风格按钮效果
-        document.querySelectorAll('.android-btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                // 创建涟漪效果
-                const ripple = document.createElement('span');
-                const rect = this.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-                
-                ripple.style.cssText = `
-                    position: absolute;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.7);
-                    transform: scale(0);
-                    animation: ripple-animation 0.6s linear;
-                    width: ${size}px;
-                    height: ${size}px;
-                    top: ${y}px;
-                    left: ${x}px;
-                `;
-                
-                this.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
+        
+        // 平滑滚动效果
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
             });
         });
-
-        // 添加涟漪动画
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple-animation {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 </html>
