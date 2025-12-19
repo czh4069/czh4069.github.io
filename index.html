@@ -3,107 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mitaiair - 完整版</title>
+    <title>Mitaiair - Hello</title>
     <style>
         :root { --primary: #007bff; --bg: #f4f7f6; --text: #333; --danger: #dc3545; --warning: #ffc107; --success: #28a745; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 500px; background: white; padding: 35px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); box-sizing: border-box; animation: fadeIn 0.6s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 500px; background: white; padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); box-sizing: border-box; animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .hidden { display: none !important; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; margin-top: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
-        button.secondary { background: #6c757d; }
+        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 10px; box-sizing: border-box; font-size: 16px; background: #fafafa; transition: 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; }
+        button { width: 100%; padding: 14px; margin-top: 10px; background: #000; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 500; transition: 0.3s; }
+        button:hover { opacity: 0.8; transform: translateY(-1px); }
+        button.secondary { background: #f0f0f2; color: #333; }
         button.danger { background: var(--danger); }
         button.warning { background: var(--warning); color: #000; }
-        button.text-btn { background: none; color: var(--primary); width: auto; padding: 0; margin: 0; font-size: 13px; text-decoration: underline; }
 
-        /* 动画样式 */
-        .stroke-wrapper { text-align: center; margin-bottom: 20px; }
-        .stroke-text { width: 100%; height: auto; max-height: 100px; }
-        .stroke-text text { fill: none; stroke: #333; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 6000; stroke-dashoffset: 6000; font-family: 'KaiTi', '楷体', cursive; font-size: 45px; animation: draw 8s ease-in-out forwards; }
-        @keyframes draw { to { stroke-dashoffset: 0; } }
+        /* --- Apple 风格 hello 动画 --- */
+        .stroke-wrapper { text-align: center; margin-bottom: 30px; }
+        .stroke-text { width: 100%; height: auto; max-height: 120px; }
+        .stroke-text text { 
+            fill: none; 
+            stroke: #000; 
+            stroke-width: 1.2; 
+            stroke-linecap: round; 
+            stroke-dasharray: 1000; 
+            stroke-dashoffset: 1000; 
+            /* 使用手写感较强的字体 */
+            font-family: "Apple Chancery", "Comic Sans MS", cursive; 
+            font-size: 70px; 
+            animation: drawHello 5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards; 
+        }
+        @keyframes drawHello { 
+            0% { stroke-dashoffset: 1000; }
+            100% { stroke-dashoffset: 0; } 
+        }
 
-        /* 列表样式 */
-        .list-section { background: #f9f9f9; border-radius: 8px; padding: 10px; margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #eee; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; }
+        /* 列表与管理面板 */
+        .list-section { background: #f9f9fb; border-radius: 12px; padding: 15px; margin-top: 15px; max-height: 250px; overflow-y: auto; border: 1px solid #efefef; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
         .item:last-child { border-bottom: none; }
-        .badge { font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
-        .badge-red { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-        .badge-orange { background: #fff3e0; color: #ef6c00; border: 1px solid #ffcc80; }
+        .badge { font-size: 11px; padding: 3px 6px; border-radius: 6px; margin-left: 5px; }
+        .badge-red { background: #ffebee; color: #d32f2f; }
+        .badge-orange { background: #fff3e0; color: #e65100; }
     </style>
 </head>
 <body>
 
 <div id="screen-intro" class="container hidden">
-    <div class="stroke-wrapper"><svg class="stroke-text" viewBox="0 0 400 100"><text x="50%" y="65%" text-anchor="middle">你好</text></svg></div>
-    <button onclick="showScreen('screen-setup-1')">下一步</button>
+    <div class="stroke-wrapper">
+        <svg class="stroke-text" viewBox="0 0 400 120">
+            <text x="50%" y="70%" text-anchor="middle">hello</text>
+        </svg>
+    </div>
+    <button onclick="showScreen('screen-setup-1')">开始设置</button>
 </div>
 
 <div id="screen-setup-1" class="container hidden">
-    <h2>初始化管理员</h2>
+    <h2 style="font-weight: 600;">创建管理员</h2>
+    <p style="color:#888; text-align:center;">请提供您的管理凭据</p>
     <input type="text" id="set-admin-u" placeholder="管理员账号">
-    <input type="password" id="set-admin-p" placeholder="管理密码">
+    <input type="password" id="set-admin-p" placeholder="设置密码">
     <button onclick="saveAdmin()">下一步</button>
 </div>
 
 <div id="screen-setup-2" class="container hidden">
-    <h2>2步验证设置</h2>
-    <p style="font-size:14px; color:#666;">增加账号安全性</p>
-    <button onclick="document.getElementById('2fa-choice').classList.remove('hidden')">开启</button>
-    <button class="secondary" onclick="save2FA(false)">跳过</button>
-    <div id="2fa-choice" class="hidden">
-        <hr>
+    <h2 style="font-weight: 600;">安全保护</h2>
+    <p style="color:#888; text-align:center;">是否为管理员开启2步验证？</p>
+    <button onclick="document.getElementById('2fa-choice').classList.remove('hidden')">开启验证</button>
+    <button class="secondary" onclick="save2FA(false)">以后再说</button>
+    <div id="2fa-choice" class="hidden" style="margin-top:15px; border-top: 1px solid #eee; padding-top:15px;">
         <button onclick="save2FA(true, 'auto')">自动生成验证码</button>
-        <input type="text" id="custom-2fa" placeholder="或手动输入6位数字" maxlength="6">
-        <button class="secondary" onclick="save2FA(true, 'manual')">确认手动</button>
+        <input type="text" id="custom-2fa" placeholder="或手动输入6位数字" maxlength="6" style="text-align:center;">
+        <button class="secondary" onclick="save2FA(true, 'manual')">确认手动设置</button>
     </div>
 </div>
 
 <div id="screen-setup-3" class="container hidden">
-    <h2>恢复密钥</h2>
-    <p style="font-size:14px; color:#666;">用于遗忘密码时重置账号</p>
-    <button onclick="saveKey(true)">生成并继续</button>
-    <button class="secondary" onclick="saveKey(false)">不需要</button>
+    <h2 style="font-weight: 600;">恢复密钥</h2>
+    <p style="color:#888; text-align:center;">如果忘记密码，这是唯一的找回途径</p>
+    <button onclick="saveKey(true)">生成 8 位密钥</button>
+    <button class="secondary" onclick="saveKey(false)">跳过此步</button>
 </div>
 
 <div id="screen-finish" class="container hidden">
-    <div class="stroke-wrapper"><svg class="stroke-text" viewBox="0 0 600 100"><text x="50%" y="65%" text-anchor="middle">欢迎使用mitaiair</text></svg></div>
-    <div id="summary-info" style="font-size:13px; color:#666; margin-bottom:15px; background:#f0f0f0; padding:10px; border-radius:5px;"></div>
+    <div class="stroke-wrapper">
+        <svg class="stroke-text" viewBox="0 0 600 120">
+            <text x="50%" y="70%" text-anchor="middle" style="font-size: 38px;">欢迎使用mitaiair</text>
+        </svg>
+    </div>
+    <div id="summary-info" style="font-size:14px; color:#555; margin-bottom:20px; background:#f5f5f7; padding:15px; border-radius:12px; line-height:1.6;"></div>
     <button onclick="completeSetup()">进入系统</button>
 </div>
 
 <div id="screen-login" class="container hidden">
-    <h2>Mitaiair 登录</h2>
-    <input type="text" id="l-u" placeholder="账号">
+    <h2 style="font-weight:600; text-align:center;">登录 mitaiair</h2>
+    <input type="text" id="l-u" placeholder="用户名">
     <input type="password" id="l-p" placeholder="密码">
-    <div id="l-2fa-box" class="hidden"><input type="text" id="l-2fa" placeholder="6位验证码"></div>
-    <button onclick="doLogin()">登录</button>
-    <button class="secondary" onclick="showScreen('screen-reg')">注册新用户</button>
-    <button class="text-btn" style="margin-top:10px; display:block; margin-left:auto; margin-right:auto;" onclick="showScreen('screen-recover')">忘记密码？</button>
+    <div id="l-2fa-box" class="hidden">
+        <input type="text" id="l-2fa" placeholder="输入 6 位验证码" style="border-color: #000;">
+    </div>
+    <button onclick="doLogin()">继续</button>
+    <button class="secondary" onclick="showScreen('screen-reg')">注册新帐号</button>
+    <button style="background:none; color:#007aff; font-size:13px; text-decoration:none;" onclick="showScreen('screen-recover')">忘记密码？</button>
 </div>
 
 <div id="screen-reg" class="container hidden">
     <h2>用户注册</h2>
-    <input type="text" id="r-u" placeholder="用户名">
+    <input type="text" id="r-u" placeholder="名字">
     <input type="email" id="r-e" placeholder="邮箱">
     <input type="password" id="r-p" placeholder="密码">
-    <button onclick="doReg()">提交注册</button>
-    <button class="secondary" onclick="showScreen('screen-login')">返回</button>
-</div>
-
-<div id="screen-recover" class="container hidden">
-    <h2>账号找回</h2>
-    <input type="text" id="rec-u" placeholder="用户名">
-    <input type="text" id="rec-k" placeholder="8位恢复密钥">
-    <button onclick="doRecover()">重置账号</button>
+    <button onclick="doReg()">立即注册</button>
     <button class="secondary" onclick="showScreen('screen-login')">取消</button>
 </div>
 
+<div id="screen-recover" class="container hidden">
+    <h2>恢复您的帐号</h2>
+    <input type="text" id="rec-u" placeholder="用户名">
+    <input type="text" id="rec-k" placeholder="8位密钥">
+    <button onclick="doRecover()">重新生成凭据</button>
+    <button class="secondary" onclick="showScreen('screen-login')">返回</button>
+</div>
+
 <div id="screen-warn" class="container hidden">
-    <div style="text-align:center; border:2px solid var(--danger); padding:20px; border-radius:10px;">
-        <h3 style="color:var(--danger);">⚠️ 账号已被标记</h3>
-        <p>24小时内未解除就永久删除。什么？你说误删，那还不找管理。</p>
+    <div style="text-align:center; border:1px solid var(--danger); padding:25px; border-radius:15px;">
+        <h3 style="color:var(--danger);">帐号已被标记</h3>
+        <p style="font-size:14px; line-height:1.5;">24小时内未解除就永久删除。什么？你说误删，那还不找管理。</p>
         <button class="danger" onclick="confirmPermDelete()">现在删除</button>
         <button class="secondary" onclick="location.reload()">等等先</button>
     </div>
@@ -112,21 +136,18 @@
 <div id="screen-admin" class="container hidden" style="max-width:600px;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">系统管理</h3>
-        <button class="secondary" style="width:auto; padding:5px 10px; margin:0;" onclick="location.reload()">退出</button>
+        <button class="secondary" style="width:auto; padding:6px 12px; margin:0;" onclick="location.reload()">退出</button>
     </div>
-
     <h4>用户列表</h4>
     <div id="adm-user-list" class="list-section"></div>
-
     <h4>黑名单管理 (可移除)</h4>
     <div id="adm-black-list" class="list-section"></div>
-
-    <button class="warning" style="margin-top:30px;" onclick="resetSystem()">重置系统教程</button>
+    <button class="warning" style="margin-top:30px; background:#fff; border:1px solid #ccc;" onclick="resetSystem()">重置系统教程</button>
 </div>
 
 <div id="screen-user" class="container hidden">
     <h2 id="u-welcome"></h2>
-    <p>您的账号状态正常。可以使用2步验证和恢复密钥功能。</p>
+    <p style="text-align:center; color:#666;">您的帐号已成功登录。</p>
     <button class="secondary" onclick="location.reload()">退出登录</button>
 </div>
 
@@ -136,7 +157,6 @@
         users: JSON.parse(localStorage.getItem('users') || '[]'),
         blacklist: JSON.parse(localStorage.getItem('blacklist') || '[]')
     };
-
     let temp = {};
 
     window.onload = () => { if(!db.initialized) showScreen('screen-intro'); else showScreen('screen-login'); };
@@ -147,11 +167,10 @@
         if(id === 'screen-admin') renderAdmin();
     }
 
-    // 初始化流
     function saveAdmin() {
         temp.u = document.getElementById('set-admin-u').value;
         temp.p = document.getElementById('set-admin-p').value;
-        if(!temp.u || !temp.p) return alert('请填写完整');
+        if(!temp.u || !temp.p) return alert('请输入完整信息');
         showScreen('screen-setup-2');
     }
 
@@ -161,7 +180,7 @@
             if(mode === 'auto') temp.code = Math.floor(100000 + Math.random()*900000).toString();
             else temp.code = document.getElementById('custom-2fa').value;
             if(!temp.code || temp.code.length !== 6) return alert('请输入6位验证码');
-            alert('您的2步验证码是: ' + temp.code);
+            alert('验证码已设为: ' + temp.code);
         }
         showScreen('screen-setup-3');
     }
@@ -169,105 +188,86 @@
     function saveKey(use) {
         if(use) {
             temp.key = Math.random().toString(36).substr(2, 8).toUpperCase();
-            alert('您的恢复密钥是: ' + temp.key);
+            alert('恢复密钥: ' + temp.key);
         }
         showScreen('screen-finish');
-        document.getElementById('summary-info').innerHTML = `管理员: ${temp.u}<br>2FA: ${temp.use2fa?'已开启':'未开启'}<br>密钥: ${temp.key || '未生成'}`;
+        document.getElementById('summary-info').innerHTML = `管理员帐号: ${temp.u}<br>2步验证: ${temp.use2fa?'已开启':'未开启'}<br>安全密钥: ${temp.key || '未启用'}`;
     }
 
     function completeSetup() {
-        let admin = { username: temp.u, password: temp.p, role: 'admin', use2fa: !!temp.use2fa, code2fa: temp.code||'', recoveryKey: temp.key||'', banned: false, marked: null, email: 'admin@mitaiair' };
-        db.users.push(admin);
+        db.users.push({ username: temp.u, password: temp.p, role: 'admin', use2fa: !!temp.use2fa, code2fa: temp.code||'', recoveryKey: temp.key||'', banned: false, marked: null, email: 'admin@system' });
         saveDB();
         localStorage.setItem('init', 'true');
         location.reload();
     }
 
-    // 登录注册
     function doLogin() {
-        let u = document.getElementById('l-u').value;
-        let p = document.getElementById('l-p').value;
+        let u = document.getElementById('l-u').value, p = document.getElementById('l-p').value;
         let user = db.users.find(x => x.username === u && x.password === p);
-        if(!user) return alert('账号或密码错误');
-        if(user.banned) return alert('账号已被封禁');
-        
+        if(!user) return alert('无效的帐号或密码');
+        if(user.banned) return alert('帐号已被封禁');
         if(user.use2fa) {
             let box = document.getElementById('l-2fa-box');
             if(box.classList.contains('hidden')) { box.classList.remove('hidden'); return; }
             if(document.getElementById('l-2fa').value !== user.code2fa) return alert('验证码错误');
         }
-
         if(user.marked) {
-            if(Date.now() - user.marked > 86400000) { deleteUser(user.username, true); return alert('由于标记超24小时，账号已删除'); }
+            if(Date.now() - user.marked > 86400000) { deleteUser(user.username, true); return alert('标记已逾24小时，帐号已销毁'); }
             temp.current = user.username; showScreen('screen-warn'); return;
         }
-
         temp.current = user.username;
         if(user.role === 'admin') showScreen('screen-admin');
-        else { showScreen('screen-user'); document.getElementById('u-welcome').innerText = '欢迎, ' + user.username; }
+        else { showScreen('screen-user'); document.getElementById('u-welcome').innerText = 'hello, ' + user.username; }
     }
 
     function doReg() {
         let u = document.getElementById('r-u').value, e = document.getElementById('r-e').value, p = document.getElementById('r-p').value;
-        if(db.blacklist.includes(u) || db.blacklist.includes(e)) return alert('该用户名或邮箱在黑名单中');
-        if(db.users.find(x=>x.username === u)) return alert('用户名已存在');
-        
+        if(db.blacklist.includes(u) || db.blacklist.includes(e)) return alert('此帐号或邮箱在系统黑名单中');
+        if(db.users.find(x=>x.username === u)) return alert('帐号已存在');
         let key = Math.random().toString(36).substr(2, 8).toUpperCase();
-        db.users.push({ username: u, email: e, password: p, role: 'user', use2fa: false, recoveryKey: key, banned: false, marked: null });
+        db.users.push({ username: u, email: e, password: p, role: 'user', use2fa: true, code2fa: '123456', recoveryKey: key, banned: false, marked: null });
         saveDB();
-        alert('注册成功！您的恢复密钥是: ' + key);
+        alert('注册成功！恢复密钥: ' + key + '\n默认2FA: 123456');
         showScreen('screen-login');
     }
 
     function doRecover() {
         let u = document.getElementById('rec-u').value, k = document.getElementById('rec-k').value;
         let user = db.users.find(x => x.username === u && x.recoveryKey === k);
-        if(!user) return alert('信息不匹配');
-        let newP = prompt('输入新密码');
-        if(newP) { user.password = newP; user.recoveryKey = Math.random().toString(36).substr(2, 8).toUpperCase(); saveDB(); alert('重置成功，新密钥: ' + user.recoveryKey); showScreen('screen-login'); }
+        if(!user) return alert('认证失败');
+        let newP = prompt('请输入新密码');
+        if(newP) { user.password = newP; user.recoveryKey = Math.random().toString(36).substr(2, 8).toUpperCase(); saveDB(); alert('已重置。新密钥: ' + user.recoveryKey); showScreen('screen-login'); }
     }
 
-    // 管理员功能
     function renderAdmin() {
-        let uList = document.getElementById('adm-user-list'), bList = document.getElementById('adm-black-list');
-        uList.innerHTML = ''; bList.innerHTML = '';
-
+        let uL = document.getElementById('adm-user-list'), bL = document.getElementById('adm-black-list');
+        uL.innerHTML = ''; bL.innerHTML = '';
         db.users.forEach(u => {
             if(u.role === 'admin') return;
-            let status = u.banned ? '<span class="badge badge-red">封禁</span>' : (u.marked ? '<span class="badge badge-orange">待删</span>' : '');
-            uList.innerHTML += `<div class="item"><span>${u.username} ${status}</span><div>
-                <button onclick="toggleBan('${u.username}')" class="warning" style="width:auto; padding:2px 8px; font-size:12px;">封/解</button>
-                <button onclick="markUser('${u.username}')" class="danger" style="width:auto; padding:2px 8px; font-size:12px;">标记</button>
-                <button onclick="deleteUser('${u.username}', true)" class="danger" style="width:auto; padding:2px 8px; font-size:12px; background:#000;">永久</button>
+            let st = u.banned ? '<span class="badge badge-red">封禁</span>' : (u.marked ? '<span class="badge badge-orange">标记中</span>' : '');
+            uL.innerHTML += `<div class="item"><span>${u.username} ${st}</span><div>
+                <button onclick="toggleBan('${u.username}')" class="warning" style="width:auto; padding:4px 8px; font-size:12px;">封/解</button>
+                <button onclick="markUser('${u.username}')" class="danger" style="width:auto; padding:4px 8px; font-size:12px;">标记</button>
+                <button onclick="deleteUser('${u.username}', true)" class="danger" style="width:auto; padding:4px 8px; font-size:12px; background:#000;">永久删除</button>
             </div></div>`;
         });
-
         db.blacklist.forEach(b => {
-            bList.innerHTML += `<div class="item"><span>${b}</span><button onclick="removeFromBlacklist('${b}')" class="secondary" style="width:auto; padding:2px 8px; font-size:12px;">移除</button></div>`;
+            bL.innerHTML += `<div class="item"><span>${b}</span><button onclick="removeFromBlacklist('${b}')" class="secondary" style="width:auto; padding:4px 8px; font-size:12px;">移除黑名单</button></div>`;
         });
     }
 
     function toggleBan(u) { let user = db.users.find(x=>x.username===u); user.banned = !user.banned; saveDB(); renderAdmin(); }
-    function markUser(u) { let user = db.users.find(x=>x.username===u); user.marked = Date.now(); saveDB(); renderAdmin(); alert('已标记，用户下次登录会收到警告'); }
-    
-    function deleteUser(u, permanent) {
+    function markUser(u) { let user = db.users.find(x=>x.username===u); user.marked = Date.now(); saveDB(); renderAdmin(); }
+    function deleteUser(u, p) {
         let user = db.users.find(x=>x.username===u);
-        if(permanent) { db.blacklist.push(user.username); db.blacklist.push(user.email); }
+        if(p) { db.blacklist.push(user.username); db.blacklist.push(user.email); }
         db.users = db.users.filter(x=>x.username!==u);
         saveDB(); renderAdmin();
     }
-
-    function removeFromBlacklist(val) {
-        db.blacklist = db.blacklist.filter(x => x !== val);
-        saveDB();
-        renderAdmin();
-        alert('已从黑名单移除: ' + val);
-    }
-
-    function confirmPermDelete() { deleteUser(temp.current, true); alert('已删除'); location.reload(); }
+    function removeFromBlacklist(v) { db.blacklist = db.blacklist.filter(x => x !== v); saveDB(); renderAdmin(); alert('已解除黑名单'); }
+    function confirmPermDelete() { deleteUser(temp.current, true); location.reload(); }
     function saveDB() { localStorage.setItem('users', JSON.stringify(db.users)); localStorage.setItem('blacklist', JSON.stringify(db.blacklist)); }
-    function resetSystem() { if(confirm('重置将清空所有数据！')) { localStorage.clear(); location.reload(); } }
-
+    function resetSystem() { if(confirm('确定重置吗？')) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
