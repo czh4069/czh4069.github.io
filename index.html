@@ -3,433 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mitaiair</title>
+    <title>Mitaiair - 完整版</title>
     <style>
-        /* --- 全局样式 --- */
-        :root {
-            --primary: #007bff;
-            --bg: #f4f7f6;
-            --text: #333;
-            --danger: #dc3545;
-            --warning: #ffc107;
-        }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-        
-        /* 容器样式 */
-        .container { 
-            width: 100%; max-width: 480px; 
-            background: white; padding: 40px; 
-            border-radius: 16px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
-            position: relative; 
-            box-sizing: border-box;
-            animation: fadeIn 0.8s ease-out; /* 页面切换也稍微慢一点，更柔和 */
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
+        :root { --primary: #007bff; --bg: #f4f7f6; --text: #333; --danger: #dc3545; --warning: #ffc107; --success: #28a745; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 500px; background: white; padding: 35px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); box-sizing: border-box; animation: fadeIn 0.6s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hidden { display: none !important; }
-        
-        h2, h3 { text-align: center; color: #444; margin-top: 0; }
-        input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--primary); outline: none; }
-        
-        button { width: 100%; padding: 14px; margin-top: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500; transition: 0.2s; }
-        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        button.secondary { background: #e9ecef; color: #333; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin-top: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        button.secondary { background: #6c757d; }
         button.danger { background: var(--danger); }
         button.warning { background: var(--warning); color: #000; }
-        
-        /* --- 动画核心修改区域 --- */
-        .stroke-wrapper {
-            width: 100%;
-            overflow: visible;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .stroke-text { 
-            width: 100%; 
-            height: auto;
-            max-height: 120px;
-            display: block;
-            margin: 0 auto;
-        }
-        .stroke-text text { 
-            fill: none;
-            stroke: #333;
-            stroke-width: 1.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            
-            stroke-dasharray: 6000;     
-            stroke-dashoffset: 6000; 
-            
-            font-family: 'Brush Script MT', 'KaiTi', '楷体', cursive;
-            font-size: 50px;
-            font-weight: normal;
-            
-            /* 【修改这里】：将时间改为 8s (8秒)，非常缓慢 */
-            animation: draw 8s ease-in-out forwards; 
-        }
+        button.text-btn { background: none; color: var(--primary); width: auto; padding: 0; margin: 0; font-size: 13px; text-decoration: underline; }
 
-        @keyframes draw { 
-            0% { stroke-dashoffset: 6000; }
-            100% { stroke-dashoffset: 0; } 
-        }
-        
-        /* 管理面板样式 */
-        .user-item { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;}
-        .user-info { font-size: 0.95em; width: 100%; margin-bottom: 8px; color: #555; }
-        .btn-group { display: flex; gap: 5px; width: 100%; }
-        .action-btn { flex: 1; padding: 8px; font-size: 0.85em; margin: 0; }
-        
-        .mark-warning { border: 2px solid var(--danger); padding: 20px; border-radius: 12px; background: #fff5f5; text-align: center; }
-        .mark-warning h3 { color: var(--danger); }
-        .warning-btns { display: flex; gap: 10px; margin-top: 20px; }
+        /* 动画样式 */
+        .stroke-wrapper { text-align: center; margin-bottom: 20px; }
+        .stroke-text { width: 100%; height: auto; max-height: 100px; }
+        .stroke-text text { fill: none; stroke: #333; stroke-width: 1.5; stroke-linecap: round; stroke-dasharray: 6000; stroke-dashoffset: 6000; font-family: 'KaiTi', '楷体', cursive; font-size: 45px; animation: draw 8s ease-in-out forwards; }
+        @keyframes draw { to { stroke-dashoffset: 0; } }
+
+        /* 列表样式 */
+        .list-section { background: #f9f9f9; border-radius: 8px; padding: 10px; margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #eee; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .item:last-child { border-bottom: none; }
+        .badge { font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
+        .badge-red { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .badge-orange { background: #fff3e0; color: #ef6c00; border: 1px solid #ffcc80; }
     </style>
 </head>
 <body>
 
 <div id="screen-intro" class="container hidden">
-    <div class="stroke-wrapper">
-        <svg class="stroke-text" viewBox="0 0 400 100">
-            <text x="50%" y="65%" text-anchor="middle">你好</text>
-        </svg>
-    </div>
-    <button onclick="nextStep('setup-1')">下一步</button>
+    <div class="stroke-wrapper"><svg class="stroke-text" viewBox="0 0 400 100"><text x="50%" y="65%" text-anchor="middle">你好</text></svg></div>
+    <button onclick="showScreen('screen-setup-1')">下一步</button>
 </div>
 
 <div id="screen-setup-1" class="container hidden">
-    <h2>创建管理员</h2>
-    <p style="text-align: center; color: #666; font-size: 0.9em;">请设置初始管理账号</p>
-    <input type="text" id="setup-admin-user" placeholder="管理员账号">
-    <input type="password" id="setup-admin-pass" placeholder="设置密码">
-    <button onclick="setupStep1()">下一步</button>
+    <h2>初始化管理员</h2>
+    <input type="text" id="set-admin-u" placeholder="管理员账号">
+    <input type="password" id="set-admin-p" placeholder="管理密码">
+    <button onclick="saveAdmin()">下一步</button>
 </div>
 
 <div id="screen-setup-2" class="container hidden">
-    <h2>安全设置 (1/2)</h2>
-    <h3>是否开启2步验证？</h3>
-    <button onclick="setup2FA(true)">是，我要开启</button>
-    <button class="secondary" onclick="setup2FA(false)">否，跳过</button>
-    
-    <div id="2fa-options" class="hidden" style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 20px;">
-        <button onclick="set2FAMethod('auto')" style="margin-top:0;">自动生成验证码</button>
-        <div style="display:flex; align-items:center; gap:10px; margin: 10px 0;">
-            <hr style="flex:1; border:0; border-top:1px solid #eee;"> <span style="color:#999; font-size:12px">或</span> <hr style="flex:1; border:0; border-top:1px solid #eee;">
-        </div>
-        <input type="text" id="manual-2fa" placeholder="手动输入6位数字" maxlength="6" style="text-align: center; letter-spacing: 5px;">
-        <button class="secondary" onclick="set2FAMethod('manual')">确认使用手动码</button>
+    <h2>2步验证设置</h2>
+    <p style="font-size:14px; color:#666;">增加账号安全性</p>
+    <button onclick="document.getElementById('2fa-choice').classList.remove('hidden')">开启</button>
+    <button class="secondary" onclick="save2FA(false)">跳过</button>
+    <div id="2fa-choice" class="hidden">
+        <hr>
+        <button onclick="save2FA(true, 'auto')">自动生成验证码</button>
+        <input type="text" id="custom-2fa" placeholder="或手动输入6位数字" maxlength="6">
+        <button class="secondary" onclick="save2FA(true, 'manual')">确认手动</button>
     </div>
 </div>
 
 <div id="screen-setup-3" class="container hidden">
-    <h2>安全设置 (2/2)</h2>
-    <h3>生成恢复密钥？</h3>
-    <button onclick="setupRecovery(true)">生成密钥 (推荐)</button>
-    <button class="secondary" onclick="setupRecovery(false)">跳过</button>
+    <h2>恢复密钥</h2>
+    <p style="font-size:14px; color:#666;">用于遗忘密码时重置账号</p>
+    <button onclick="saveKey(true)">生成并继续</button>
+    <button class="secondary" onclick="saveKey(false)">不需要</button>
 </div>
 
-<div id="screen-setup-finish" class="container hidden">
-    <div class="stroke-wrapper">
-        <svg class="stroke-text" viewBox="0 0 600 100">
-            <text x="50%" y="65%" text-anchor="middle" style="font-size: 40px;">欢迎使用mitaiair</text>
-        </svg>
-    </div>
-    <div id="final-info" style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 0.9em; line-height: 1.6;"></div>
-    <button onclick="finishSetup()">进入系统</button>
+<div id="screen-finish" class="container hidden">
+    <div class="stroke-wrapper"><svg class="stroke-text" viewBox="0 0 600 100"><text x="50%" y="65%" text-anchor="middle">欢迎使用mitaiair</text></svg></div>
+    <div id="summary-info" style="font-size:13px; color:#666; margin-bottom:15px; background:#f0f0f0; padding:10px; border-radius:5px;"></div>
+    <button onclick="completeSetup()">进入系统</button>
 </div>
 
 <div id="screen-login" class="container hidden">
     <h2>Mitaiair 登录</h2>
-    <input type="text" id="login-user" placeholder="用户名/账号">
-    <input type="password" id="login-pass" placeholder="密码">
-    <div id="login-2fa-section" class="hidden">
-        <input type="text" id="login-2fa-code" placeholder="输入6位验证码" style="border-color: var(--primary); background: #f0f7ff;">
-    </div>
-    <button onclick="attemptLogin()">登录</button>
-    <button class="secondary" onclick="showRegister()">注册新账号</button>
-    <p style="text-align: center; font-size: 0.85em; margin-top: 15px; cursor: pointer; color: #666; text-decoration: underline;" onclick="showRecovery()">忘记密码 / 恢复账号</p>
+    <input type="text" id="l-u" placeholder="账号">
+    <input type="password" id="l-p" placeholder="密码">
+    <div id="l-2fa-box" class="hidden"><input type="text" id="l-2fa" placeholder="6位验证码"></div>
+    <button onclick="doLogin()">登录</button>
+    <button class="secondary" onclick="showScreen('screen-reg')">注册新用户</button>
+    <button class="text-btn" style="margin-top:10px; display:block; margin-left:auto; margin-right:auto;" onclick="showScreen('screen-recover')">忘记密码？</button>
 </div>
 
-<div id="screen-register" class="container hidden">
-    <h2>注册新用户</h2>
-    <input type="text" id="reg-name" placeholder="设置用户名">
-    <input type="email" id="reg-email" placeholder="电子邮箱">
-    <input type="password" id="reg-pass" placeholder="设置密码">
-    <button onclick="registerUser()">立即注册</button>
-    <button class="secondary" onclick="showLogin()">返回登录</button>
+<div id="screen-reg" class="container hidden">
+    <h2>用户注册</h2>
+    <input type="text" id="r-u" placeholder="用户名">
+    <input type="email" id="r-e" placeholder="邮箱">
+    <input type="password" id="r-p" placeholder="密码">
+    <button onclick="doReg()">提交注册</button>
+    <button class="secondary" onclick="showScreen('screen-login')">返回</button>
 </div>
 
-<div id="screen-recovery" class="container hidden">
-    <h2>找回账号</h2>
-    <input type="text" id="rec-user" placeholder="用户名">
-    <input type="text" id="rec-key" placeholder="输入8位恢复密钥">
-    <button onclick="processRecovery()">重置密码与密钥</button>
-    <button class="secondary" onclick="showLogin()">取消</button>
+<div id="screen-recover" class="container hidden">
+    <h2>账号找回</h2>
+    <input type="text" id="rec-u" placeholder="用户名">
+    <input type="text" id="rec-k" placeholder="8位恢复密钥">
+    <button onclick="doRecover()">重置账号</button>
+    <button class="secondary" onclick="showScreen('screen-login')">取消</button>
 </div>
 
-<div id="screen-warning" class="container hidden">
-    <div class="mark-warning">
-        <h3>⚠️ 账号已被标记</h3>
-        <p>你的账号已被标记，24小时内未解除就永久删除。</p>
-        <p style="font-style: italic; color: #666;">“什么？你说误删，那还不找管理”</p>
-        <div class="warning-btns">
-            <button class="danger" onclick="selfDelete()">现在删除</button>
-            <button class="secondary" onclick="logout()">等等先 (退出)</button>
-        </div>
+<div id="screen-warn" class="container hidden">
+    <div style="text-align:center; border:2px solid var(--danger); padding:20px; border-radius:10px;">
+        <h3 style="color:var(--danger);">⚠️ 账号已被标记</h3>
+        <p>24小时内未解除就永久删除。什么？你说误删，那还不找管理。</p>
+        <button class="danger" onclick="confirmPermDelete()">现在删除</button>
+        <button class="secondary" onclick="location.reload()">等等先</button>
     </div>
 </div>
 
-<div id="screen-admin" class="container hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-        <h3 style="margin:0;">管理员控制台</h3>
-        <button class="secondary" style="width: auto; padding: 8px 15px; margin:0;" onclick="logout()">退出</button>
+<div id="screen-admin" class="container hidden" style="max-width:600px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">系统管理</h3>
+        <button class="secondary" style="width:auto; padding:5px 10px; margin:0;" onclick="location.reload()">退出</button>
     </div>
-    <div style="background: #fafafa; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-weight: bold; color: #666;">用户列表</div>
-    <div id="user-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-    <button class="warning" onclick="resetTutorial()">重置教程 (清空所有数据)</button>
+
+    <h4>用户列表</h4>
+    <div id="adm-user-list" class="list-section"></div>
+
+    <h4>黑名单管理 (可移除)</h4>
+    <div id="adm-black-list" class="list-section"></div>
+
+    <button class="warning" style="margin-top:30px;" onclick="resetSystem()">重置系统教程</button>
 </div>
 
 <div id="screen-user" class="container hidden">
-    <div class="stroke-wrapper">
-         <svg class="stroke-text" viewBox="0 0 400 80">
-            <text x="50%" y="60%" text-anchor="middle" style="font-size: 35px;">欢迎回来</text>
-        </svg>
-    </div>
-    <h3 id="display-username" style="color: var(--primary);"></h3>
-    <button class="secondary" onclick="logout()">退出登录</button>
+    <h2 id="u-welcome"></h2>
+    <p>您的账号状态正常。可以使用2步验证和恢复密钥功能。</p>
+    <button class="secondary" onclick="location.reload()">退出登录</button>
 </div>
 
 <script>
-    let tempAdmin = { user: '', pass: '', use2fa: false, code2fa: '', useKey: false, key: '' };
-    
-    window.onload = function() {
-        if (!localStorage.getItem('mitaiair_initialized')) {
-            showScreen('screen-intro');
-        } else {
-            showScreen('screen-login');
-        }
+    let db = { 
+        initialized: localStorage.getItem('init') === 'true',
+        users: JSON.parse(localStorage.getItem('users') || '[]'),
+        blacklist: JSON.parse(localStorage.getItem('blacklist') || '[]')
     };
 
+    let temp = {};
+
+    window.onload = () => { if(!db.initialized) showScreen('screen-intro'); else showScreen('screen-login'); };
+
     function showScreen(id) {
-        const containers = document.querySelectorAll('.container');
-        containers.forEach(el => {
-            el.classList.add('hidden');
-            el.style.animation = 'none';
-            el.offsetHeight; 
-            el.style.animation = null; 
-        });
+        document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
+        if(id === 'screen-admin') renderAdmin();
     }
 
-    function nextStep(step) { if(step === 'setup-1') showScreen('screen-setup-1'); }
-
-    function setupStep1() {
-        const u = document.getElementById('setup-admin-user').value;
-        const p = document.getElementById('setup-admin-pass').value;
-        if (!u || !p) return alert('请输入账号和密码');
-        tempAdmin.user = u; tempAdmin.pass = p;
+    // 初始化流
+    function saveAdmin() {
+        temp.u = document.getElementById('set-admin-u').value;
+        temp.p = document.getElementById('set-admin-p').value;
+        if(!temp.u || !temp.p) return alert('请填写完整');
         showScreen('screen-setup-2');
     }
 
-    function setup2FA(enable) {
-        if (!enable) { tempAdmin.use2fa = false; showScreen('screen-setup-3'); } 
-        else { document.getElementById('2fa-options').classList.remove('hidden'); }
-    }
-
-    function set2FAMethod(type) {
-        let code = '';
-        if (type === 'auto') {
-            code = Math.floor(100000 + Math.random() * 900000).toString();
-            alert('系统为您生成了验证码: ' + code + '\n请务必牢记！');
-            document.getElementById('manual-2fa').value = code;
-        } else {
-            code = document.getElementById('manual-2fa').value;
-            if (code.length !== 6 || isNaN(code)) return alert('请输入6位数字');
+    function save2FA(use, mode) {
+        temp.use2fa = use;
+        if(use) {
+            if(mode === 'auto') temp.code = Math.floor(100000 + Math.random()*900000).toString();
+            else temp.code = document.getElementById('custom-2fa').value;
+            if(!temp.code || temp.code.length !== 6) return alert('请输入6位验证码');
+            alert('您的2步验证码是: ' + temp.code);
         }
-        tempAdmin.use2fa = true; tempAdmin.code2fa = code;
         showScreen('screen-setup-3');
     }
 
-    function setupRecovery(enable) {
-        if (enable) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let key = '';
-            for (let i = 0; i < 8; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
-            tempAdmin.useKey = true; tempAdmin.key = key;
-            alert('生成成功！您的恢复密钥是: ' + key + '\n请截图或复制保存。');
-        } else { tempAdmin.useKey = false; }
-        finalizeSetup();
+    function saveKey(use) {
+        if(use) {
+            temp.key = Math.random().toString(36).substr(2, 8).toUpperCase();
+            alert('您的恢复密钥是: ' + temp.key);
+        }
+        showScreen('screen-finish');
+        document.getElementById('summary-info').innerHTML = `管理员: ${temp.u}<br>2FA: ${temp.use2fa?'已开启':'未开启'}<br>密钥: ${temp.key || '未生成'}`;
     }
 
-    function finalizeSetup() {
-        showScreen('screen-setup-finish');
-        let info = `<strong>管理员账号:</strong> ${tempAdmin.user}`;
-        if(tempAdmin.use2fa) info += `<br><strong>2FA状态:</strong> <span style="color:green">已开启</span> (码: ${tempAdmin.code2fa})`;
-        if(tempAdmin.useKey) info += `<br><strong>恢复密钥:</strong> <span style="color:blue">${tempAdmin.key}</span>`;
-        document.getElementById('final-info').innerHTML = info;
-
-        const adminData = {
-            username: tempAdmin.user, password: tempAdmin.pass, email: 'admin@mitaiair.local',
-            role: 'admin', use2fa: tempAdmin.use2fa, code2fa: tempAdmin.code2fa,
-            recoveryKey: tempAdmin.key, isBanned: false, markedForDeletion: null
-        };
-        localStorage.setItem('mitaiair_users', JSON.stringify([adminData]));
-        localStorage.setItem('mitaiair_blacklist', JSON.stringify([]));
+    function completeSetup() {
+        let admin = { username: temp.u, password: temp.p, role: 'admin', use2fa: !!temp.use2fa, code2fa: temp.code||'', recoveryKey: temp.key||'', banned: false, marked: null, email: 'admin@mitaiair' };
+        db.users.push(admin);
+        saveDB();
+        localStorage.setItem('init', 'true');
+        location.reload();
     }
 
-    function finishSetup() { localStorage.setItem('mitaiair_initialized', 'true'); showScreen('screen-login'); }
-
-    // --- 登录/注册/恢复 ---
-    function showRegister() { showScreen('screen-register'); }
-    function showLogin() { 
-        showScreen('screen-login'); 
-        document.getElementById('login-2fa-section').classList.add('hidden'); 
-        document.getElementById('login-user').value = ''; document.getElementById('login-pass').value = ''; document.getElementById('login-2fa-code').value = '';
-    }
-    function showRecovery() { showScreen('screen-recovery'); }
-
-    function registerUser() {
-        const name = document.getElementById('reg-name').value;
-        const email = document.getElementById('reg-email').value;
-        const pass = document.getElementById('reg-pass').value;
-        if (!name || !email || !pass) return alert('请填写完整信息');
-
-        const blacklist = JSON.parse(localStorage.getItem('mitaiair_blacklist') || '[]');
-        if (blacklist.includes(name) || blacklist.includes(email)) return alert('注册失败：该用户名或邮箱已被列入黑名单。');
-
-        const users = JSON.parse(localStorage.getItem('mitaiair_users') || '[]');
-        if (users.find(u => u.username === name)) return alert('用户名已存在');
-
-        const use2fa = true; 
-        const code2fa = Math.floor(100000 + Math.random() * 900000).toString();
-        const key = 'User' + Math.floor(1000 + Math.random() * 9000); 
-
-        users.push({ username: name, password: pass, email: email, role: 'user', use2fa: use2fa, code2fa: code2fa, recoveryKey: key, isBanned: false, markedForDeletion: null });
-        localStorage.setItem('mitaiair_users', JSON.stringify(users));
-        alert(`注册成功！\n2FA码: ${code2fa}\n恢复密钥: ${key}`);
-        showLogin();
-    }
-
-    function attemptLogin() {
-        const u = document.getElementById('login-user').value;
-        const p = document.getElementById('login-pass').value;
-        const codeInput = document.getElementById('login-2fa-code').value;
-        const users = JSON.parse(localStorage.getItem('mitaiair_users') || '[]');
-        const user = users.find(user => user.username === u && user.password === p);
-
-        if (!user) return alert('账号或密码错误');
-        if (user.isBanned) return alert('拒绝访问：此账号已被管理员封禁。');
-
-        if (user.use2fa) {
-            const section = document.getElementById('login-2fa-section');
-            if (section.classList.contains('hidden')) {
-                section.classList.remove('hidden');
-                setTimeout(() => document.getElementById('login-2fa-code').focus(), 100);
-                return;
-            }
-            if (codeInput !== user.code2fa) return alert('2FA验证码错误');
+    // 登录注册
+    function doLogin() {
+        let u = document.getElementById('l-u').value;
+        let p = document.getElementById('l-p').value;
+        let user = db.users.find(x => x.username === u && x.password === p);
+        if(!user) return alert('账号或密码错误');
+        if(user.banned) return alert('账号已被封禁');
+        
+        if(user.use2fa) {
+            let box = document.getElementById('l-2fa-box');
+            if(box.classList.contains('hidden')) { box.classList.remove('hidden'); return; }
+            if(document.getElementById('l-2fa').value !== user.code2fa) return alert('验证码错误');
         }
 
-        if (user.markedForDeletion) {
-            const hoursPassed = (Date.now() - user.markedForDeletion) / (1000 * 60 * 60);
-            if (hoursPassed >= 24) { permanentDelete(user.username); return alert('账号因被标记超过24小时，已被永久删除。'); } 
-            else { localStorage.setItem('current_user', u); showScreen('screen-warning'); return; }
+        if(user.marked) {
+            if(Date.now() - user.marked > 86400000) { deleteUser(user.username, true); return alert('由于标记超24小时，账号已删除'); }
+            temp.current = user.username; showScreen('screen-warn'); return;
         }
 
-        localStorage.setItem('current_user', u);
-        if (user.role === 'admin') loadAdminPanel();
-        else { showScreen('screen-user'); document.getElementById('display-username').innerText = user.username; }
+        temp.current = user.username;
+        if(user.role === 'admin') showScreen('screen-admin');
+        else { showScreen('screen-user'); document.getElementById('u-welcome').innerText = '欢迎, ' + user.username; }
     }
 
-    function processRecovery() {
-        const u = document.getElementById('rec-user').value;
-        const k = document.getElementById('rec-key').value;
-        let users = JSON.parse(localStorage.getItem('mitaiair_users') || '[]');
-        let userIndex = users.findIndex(user => user.username === u);
-
-        if (userIndex === -1 || users[userIndex].recoveryKey !== k) return alert('恢复失败：用户名不存在或密钥无效');
-        const newPass = '123456'; const newKey = 'New' + Math.floor(Math.random()*9999);
-        users[userIndex].password = newPass; users[userIndex].recoveryKey = newKey;
-        localStorage.setItem('mitaiair_users', JSON.stringify(users));
-        alert(`账号已恢复！\n新密码: ${newPass}\n新密钥: ${newKey}`);
-        showLogin();
+    function doReg() {
+        let u = document.getElementById('r-u').value, e = document.getElementById('r-e').value, p = document.getElementById('r-p').value;
+        if(db.blacklist.includes(u) || db.blacklist.includes(e)) return alert('该用户名或邮箱在黑名单中');
+        if(db.users.find(x=>x.username === u)) return alert('用户名已存在');
+        
+        let key = Math.random().toString(36).substr(2, 8).toUpperCase();
+        db.users.push({ username: u, email: e, password: p, role: 'user', use2fa: false, recoveryKey: key, banned: false, marked: null });
+        saveDB();
+        alert('注册成功！您的恢复密钥是: ' + key);
+        showScreen('screen-login');
     }
 
-    // --- 管理面板 ---
-    function loadAdminPanel() {
-        showScreen('screen-admin');
-        const listDiv = document.getElementById('user-list');
-        listDiv.innerHTML = '';
-        const users = JSON.parse(localStorage.getItem('mitaiair_users') || '[]');
-        const currentUser = localStorage.getItem('current_user');
+    function doRecover() {
+        let u = document.getElementById('rec-u').value, k = document.getElementById('rec-k').value;
+        let user = db.users.find(x => x.username === u && x.recoveryKey === k);
+        if(!user) return alert('信息不匹配');
+        let newP = prompt('输入新密码');
+        if(newP) { user.password = newP; user.recoveryKey = Math.random().toString(36).substr(2, 8).toUpperCase(); saveDB(); alert('重置成功，新密钥: ' + user.recoveryKey); showScreen('screen-login'); }
+    }
 
-        if(users.length <= 1) { listDiv.innerHTML = '<p style="text-align:center; color:#999;">暂无其他用户</p>'; return; }
+    // 管理员功能
+    function renderAdmin() {
+        let uList = document.getElementById('adm-user-list'), bList = document.getElementById('adm-black-list');
+        uList.innerHTML = ''; bList.innerHTML = '';
 
-        users.forEach(user => {
-            if (user.username === currentUser) return; 
-            const div = document.createElement('div');
-            div.className = 'user-item';
-            let badges = '';
-            if (user.isBanned) badges += '<span style="color:red; font-size:0.8em; border:1px solid red; padding:0 4px; border-radius:4px; margin-left:5px;">已封禁</span>';
-            if (user.markedForDeletion) badges += '<span style="color:orange; font-size:0.8em; border:1px solid orange; padding:0 4px; border-radius:4px; margin-left:5px;">待删除</span>';
+        db.users.forEach(u => {
+            if(u.role === 'admin') return;
+            let status = u.banned ? '<span class="badge badge-red">封禁</span>' : (u.marked ? '<span class="badge badge-orange">待删</span>' : '');
+            uList.innerHTML += `<div class="item"><span>${u.username} ${status}</span><div>
+                <button onclick="toggleBan('${u.username}')" class="warning" style="width:auto; padding:2px 8px; font-size:12px;">封/解</button>
+                <button onclick="markUser('${u.username}')" class="danger" style="width:auto; padding:2px 8px; font-size:12px;">标记</button>
+                <button onclick="deleteUser('${u.username}', true)" class="danger" style="width:auto; padding:2px 8px; font-size:12px; background:#000;">永久</button>
+            </div></div>`;
+        });
 
-            div.innerHTML = `
-                <div class="user-info">
-                    <span style="font-size:1.1em; color:#000;">${user.username}</span> ${badges}
-                    <div style="font-size:0.85em; color:#888;">${user.email} | 2FA: ${user.use2fa?'开':'关'}</div>
-                </div>
-                <div class="btn-group">
-                    ${!user.isBanned ? `<button class="action-btn warning" onclick="banUser('${user.username}')">封禁</button>` : ''}
-                    <button class="action-btn danger" onclick="markDeleteUser('${user.username}')">标记删除</button>
-                    <button class="action-btn danger" style="background:#a71d2a" onclick="permanentDelete('${user.username}')">永久删除</button>
-                </div>`;
-            listDiv.appendChild(div);
+        db.blacklist.forEach(b => {
+            bList.innerHTML += `<div class="item"><span>${b}</span><button onclick="removeFromBlacklist('${b}')" class="secondary" style="width:auto; padding:2px 8px; font-size:12px;">移除</button></div>`;
         });
     }
 
-    function banUser(name) {
-        if(!confirm(`确定要封禁用户 ${name} 吗？`)) return;
-        let users = JSON.parse(localStorage.getItem('mitaiair_users'));
-        let user = users.find(u => u.username === name);
-        if (user) { user.isBanned = true; localStorage.setItem('mitaiair_users', JSON.stringify(users)); loadAdminPanel(); }
+    function toggleBan(u) { let user = db.users.find(x=>x.username===u); user.banned = !user.banned; saveDB(); renderAdmin(); }
+    function markUser(u) { let user = db.users.find(x=>x.username===u); user.marked = Date.now(); saveDB(); renderAdmin(); alert('已标记，用户下次登录会收到警告'); }
+    
+    function deleteUser(u, permanent) {
+        let user = db.users.find(x=>x.username===u);
+        if(permanent) { db.blacklist.push(user.username); db.blacklist.push(user.email); }
+        db.users = db.users.filter(x=>x.username!==u);
+        saveDB(); renderAdmin();
     }
 
-    function markDeleteUser(name) {
-        let users = JSON.parse(localStorage.getItem('mitaiair_users'));
-        let user = users.find(u => u.username === name);
-        if (user) { user.markedForDeletion = Date.now(); localStorage.setItem('mitaiair_users', JSON.stringify(users)); alert(`已标记 ${name}。`); loadAdminPanel(); }
+    function removeFromBlacklist(val) {
+        db.blacklist = db.blacklist.filter(x => x !== val);
+        saveDB();
+        renderAdmin();
+        alert('已从黑名单移除: ' + val);
     }
 
-    function permanentDelete(name) {
-        if(localStorage.getItem('current_user') !== name && document.getElementById('screen-admin').classList.contains('hidden') === false) {
-             if(!confirm(`⚠️ 高危操作 ⚠️\n确定永久删除 ${name} 吗？\n将加入黑名单。`)) return;
-        }
-        let users = JSON.parse(localStorage.getItem('mitaiair_users'));
-        let user = users.find(u => u.username === name);
-        let blacklist = JSON.parse(localStorage.getItem('mitaiair_blacklist') || '[]');
-        if(user) {
-            if(!blacklist.includes(user.username)) blacklist.push(user.username);
-            if(!blacklist.includes(user.email)) blacklist.push(user.email);
-            localStorage.setItem('mitaiair_blacklist', JSON.stringify(blacklist));
-        }
-        let newUsers = users.filter(u => u.username !== name);
-        localStorage.setItem('mitaiair_users', JSON.stringify(newUsers));
-        if(!document.getElementById('screen-admin').classList.contains('hidden')) loadAdminPanel();
-        else { alert('账号已永久删除。'); logout(); }
-    }
+    function confirmPermDelete() { deleteUser(temp.current, true); alert('已删除'); location.reload(); }
+    function saveDB() { localStorage.setItem('users', JSON.stringify(db.users)); localStorage.setItem('blacklist', JSON.stringify(db.blacklist)); }
+    function resetSystem() { if(confirm('重置将清空所有数据！')) { localStorage.clear(); location.reload(); } }
 
-    function resetTutorial() {
-        if(confirm('⚠️ 确定重置教程？\n这将清空所有用户数据。')) { localStorage.clear(); location.reload(); }
-    }
-
-    function selfDelete() { if(confirm('确定要现在立即删除自己的账号吗？')) permanentDelete(localStorage.getItem('current_user')); }
-    function logout() { localStorage.removeItem('current_user'); showScreen('screen-login'); }
 </script>
 </body>
 </html>
