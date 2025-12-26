@@ -873,9 +873,6 @@
             
             // 绑定事件监听器
             bindEvents();
-            
-            // 自动尝试全屏（可能需要用户交互）
-            setTimeout(tryAutoFullscreen, 500);
         });
         
         // 生成并显示密钥
@@ -925,40 +922,6 @@
                 } else {
                     fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> 全屏';
                 }
-            });
-        }
-        
-        // 尝试自动全屏
-        function tryAutoFullscreen() {
-            // 创建一个透明的覆盖层，用户点击后触发全屏
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            overlay.style.color = 'white';
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
-            overlay.style.justifyContent = 'center';
-            overlay.style.alignItems = 'center';
-            overlay.style.zIndex = '10000';
-            overlay.innerHTML = `
-                <h2 style="margin-bottom: 20px;">Mitaiair 安装程序</h2>
-                <p style="margin-bottom: 30px; text-align: center; max-width: 80%;">点击任意位置进入全屏模式以获得最佳安装体验</p>
-                <button style="padding: 12px 24px; background-color: #0078D4; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                    进入全屏模式
-                </button>
-            `;
-            
-            document.body.appendChild(overlay);
-            
-            overlay.addEventListener('click', function() {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`全屏请求失败: ${err.message}`);
-                });
-                document.body.removeChild(overlay);
             });
         }
         
